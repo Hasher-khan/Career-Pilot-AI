@@ -76,6 +76,13 @@ export function AuthProvider({ children }) {
 
   // ── Friendly Firebase error messages ────────────────────────────────────────
   function getAuthErrorMessage(code, defaultMsg) {
+    if (
+      (code && typeof code === 'string' && code.includes('api-key-not-valid')) ||
+      (defaultMsg && typeof defaultMsg === 'string' && defaultMsg.includes('api-key-not-valid'))
+    ) {
+      return 'Firebase API Key is missing on Netlify! Please add your VITE_FIREBASE_* environment variables in your Netlify site settings.';
+    }
+
     const messages = {
       'auth/user-not-found':        'No account found with this email. Click Register to create one.',
       'auth/wrong-password':        'Incorrect password. Please check and try again.',
@@ -86,8 +93,7 @@ export function AuthProvider({ children }) {
       'auth/too-many-requests':     'Too many failed attempts. Please try again later.',
       'auth/popup-closed-by-user':  'Google sign-in was cancelled.',
       'auth/network-request-failed':'Network connection failed. Please check your internet.',
-      'auth/invalid-api-key':       'Firebase API Key is missing or invalid in .env.local.',
-      'auth/api-key-not-valid':     'Firebase API Key is missing or invalid in .env.local.',
+      'auth/invalid-api-key':       'Firebase API Key is missing on Netlify! Please add your VITE_FIREBASE_* environment variables in Netlify.',
       'auth/operation-not-allowed': 'This authentication provider is not enabled in Firebase Console.',
       'auth/configuration-not-found':'Firebase Auth is not enabled for this project.',
       'auth/user-disabled':         'This user account has been disabled.'

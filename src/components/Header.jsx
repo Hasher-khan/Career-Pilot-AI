@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, Bell, Search, ShieldCheck, LogOut, Loader, Info, CheckCircle2, Sparkles } from 'lucide-react';
+import { Sun, Moon, Bell, Search, ShieldCheck, LogOut, Loader, Info, CheckCircle2, Sparkles, Menu } from 'lucide-react';
 
-export default function Header({ theme, toggleTheme, userData, activeTab, setActiveTab, currentUser, onSignOut, isDataLoading }) {
+export default function Header({ theme, toggleTheme, userData, activeTab, setActiveTab, currentUser, onSignOut, isDataLoading, toggleSidebar }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnread, setHasUnread] = useState(true);
   const dropdownRef = useRef(null);
@@ -77,20 +77,38 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
       paddingBottom: '20px',
       marginBottom: '16px',
       borderBottom: '1px solid var(--border-color)',
-      position: 'relative'
+      position: 'relative',
+      flexWrap: 'wrap',
+      gap: '12px'
     }}>
-      <div>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.3px', margin: 0 }}>
-          {titles[activeTab] || 'CareerPilot AI'}
-        </h2>
-        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-          Personalized AI application optimization & career guidance
-        </p>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <button 
+          onClick={toggleSidebar} 
+          className="btn btn-secondary mobile-hamburger-toggle"
+          style={{
+            display: 'none',
+            width: '36px', height: '36px', padding: 0,
+            alignItems: 'center', justifyContent: 'center',
+            marginRight: '12px',
+            flexShrink: 0
+          }}
+          title="Open Menu"
+        >
+          <Menu size={18} />
+        </button>
+        <div>
+          <h2 className="header-title" style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.3px', margin: 0 }}>
+            {titles[activeTab] || 'CareerPilot AI'}
+          </h2>
+          <p className="header-subtitle" style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+            Personalized AI application optimization & career guidance
+          </p>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
         {/* Search Bar */}
-        <div style={{ position: 'relative', width: '220px' }}>
+        <div className="header-search-bar" style={{ position: 'relative', width: '220px' }}>
           <Search size={16} color="var(--text-subtle)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input 
             type="text" 
@@ -232,7 +250,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
             }
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="header-user-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.2 }}>
               {isDataLoading ? '…' : displayName}
             </span>
@@ -253,7 +271,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
             style={{ fontSize: '0.82rem', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-error, #ef4444)' }}
             title="Sign Out"
           >
-            <LogOut size={15} /> Sign Out
+            <LogOut size={15} /> <span className="header-signout-text">Sign Out</span>
           </button>
         )}
       </div>

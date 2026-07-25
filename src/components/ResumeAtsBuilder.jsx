@@ -285,7 +285,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
       </div>
 
       {/* Main Grid: Left Editor & Scanner - Right High-Fidelity Resume Document Preview */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(340px, 45%) minmax(380px, 55%)', gap: '20px' }}>
+      <div className="resume-builder-grid">
         
         {/* Left Container: Form Editor or Scan Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -754,15 +754,17 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
           {/* Scrollable Container holding the A4 Document */}
           <div style={{
             overflowY: 'auto',
+            overflowX: 'auto',
             maxHeight: 'calc(100vh - 180px)',
             padding: '24px 16px',
             display: 'flex',
-            justify: 'center',
+            justifyContent: 'center',
             alignItems: 'flex-start',
             background: 'var(--bg-input)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border-color)',
-            minHeight: '650px'
+            minHeight: '650px',
+            width: '100%'
           }}>
             {/* Scaled Wrapper to maintain layout height */}
             <div style={{

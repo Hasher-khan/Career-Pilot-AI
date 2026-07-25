@@ -366,7 +366,7 @@ export default function EmailGenerator({ userData }) {
       </div>
 
       {/* Main Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 400px) 1fr', gap: '20px', alignItems: 'start' }}>
+      <div className="email-generator-grid">
 
         {/* LEFT PANEL */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

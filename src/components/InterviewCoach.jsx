@@ -49,10 +49,10 @@ export default function InterviewCoach({ userData }) {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
-        {/* Left Column: Interview Session Control & Question Room */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', gridColumn: 'span 2' }}>
+        {/* Session Control & Question Room */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           {/* Setup Strip */}
           <div className="glass-panel" style={{ padding: '20px' }}>

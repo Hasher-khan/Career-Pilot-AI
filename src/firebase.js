@@ -7,7 +7,8 @@ const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
 export const isFirebaseConfigured = Boolean(
   apiKey &&
   apiKey !== 'your-api-key-here' &&
-  !apiKey.startsWith('your-')
+  !apiKey.startsWith('your-') &&
+  apiKey !== 'dummy-api-key'
 );
 
 const firebaseConfig = {

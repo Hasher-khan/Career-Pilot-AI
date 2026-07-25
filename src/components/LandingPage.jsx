@@ -206,47 +206,47 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
   return (
     <div style={{ width:'100%', minHeight:'100vh', backgroundColor:'var(--bg-app)', color:'var(--text-main)', display:'flex', flexDirection:'column', fontFamily:'var(--font-primary)' }}>
 
-      <header style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 48px', borderBottom:'1px solid var(--border-color)', backgroundColor:'var(--bg-sidebar)', position:'sticky', top:0, zIndex:100 }}>
+      <header style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px clamp(16px, 4vw, 48px)', borderBottom:'1px solid var(--border-color)', backgroundColor:'var(--bg-sidebar)', position:'sticky', top:0, zIndex:100, gap:'12px', flexWrap:'wrap' }}>
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
           <div style={{ width:'34px', height:'34px', borderRadius:'8px', backgroundColor:'var(--accent-primary)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <Sparkles size={18} color="#ffffff" />
           </div>
           <span style={{ fontSize:'1.2rem', fontWeight:800, letterSpacing:'-0.3px' }}>Career<span style={{ color:'var(--accent-primary)' }}>Pilot AI</span></span>
         </div>
-        <nav style={{ display:'flex', alignItems:'center', gap:'32px' }}>
+        <nav style={{ display:'flex', alignItems:'center', gap:'20px', flexWrap:'wrap' }}>
           <a href="#features" style={{ color:'var(--text-muted)', textDecoration:'none', fontSize:'0.9rem', fontWeight:600 }}>Features</a>
           <a href="#testimonials" style={{ color:'var(--text-muted)', textDecoration:'none', fontSize:'0.9rem', fontWeight:600 }}>Social Proof</a>
           <a href="#pricing" style={{ color:'var(--text-muted)', textDecoration:'none', fontSize:'0.9rem', fontWeight:600 }}>Pricing</a>
         </nav>
-        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'10px', flexShrink: 0 }}>
           <button onClick={openSignIn || onGetStarted} className="btn btn-secondary" style={{ border:'none' }}>Sign In</button>
           <button onClick={openSignIn || onGetStarted} className="btn btn-primary">Get Started</button>
         </div>
       </header>
 
-      <section style={{ padding:'76px 48px 60px 48px', maxWidth:'1280px', margin:'0 auto', width:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'48px', alignItems:'center' }}>
-        <div>
+      <section style={{ padding:'clamp(40px,6vw,76px) clamp(16px,4vw,48px)', maxWidth:'1280px', margin:'0 auto', width:'100%', display:'flex', flexWrap:'wrap', gap:'48px', alignItems:'center' }}>
+        <div style={{ flex:'1 1 300px' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'5px 12px', borderRadius:'6px', backgroundColor:'var(--accent-primary-light)', border:'1px solid rgba(37,99,235,0.25)', marginBottom:'20px' }}>
             <span style={{ width:'6px', height:'6px', borderRadius:'50%', backgroundColor:'var(--accent-primary)' }}></span>
             <span style={{ fontSize:'0.75rem', fontWeight:700, color:'var(--accent-primary)', textTransform:'uppercase', letterSpacing:'0.5px' }}>V1.0 — AI INTERVIEW INTEGRATION</span>
           </div>
-          <h1 style={{ fontSize:'3.2rem', fontWeight:800, lineHeight:1.15, letterSpacing:'-1px', marginBottom:'20px' }}>
+          <h1 style={{ fontSize:'clamp(1.8rem, 4.5vw, 3.2rem)', fontWeight:800, lineHeight:1.15, letterSpacing:'-1px', marginBottom:'20px' }}>
             Navigate Your Career with <span style={{ color:'var(--accent-primary)' }}>AI Precision.</span>
           </h1>
-          <p style={{ fontSize:'1.05rem', color:'var(--text-muted)', lineHeight:1.6, marginBottom:'32px', maxWidth:'540px' }}>
+          <p style={{ fontSize:'clamp(0.9rem, 2vw, 1.05rem)', color:'var(--text-muted)', lineHeight:1.6, marginBottom:'32px', maxWidth:'540px' }}>
             Build resumes, ace interviews, and land your dream job with your personal AI career co-pilot.
           </p>
-          <div style={{ display:'flex', alignItems:'center', gap:'14px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'14px', flexWrap:'wrap' }}>
             <button onClick={onGetStarted} className="btn btn-primary" style={{ padding:'12px 24px', fontSize:'0.95rem' }}>Get Started Free</button>
             <button onClick={onGetStarted} className="btn btn-secondary" style={{ padding:'12px 20px', fontSize:'0.95rem' }}>
               <Play size={16} fill="currentColor" /> Watch Demo
             </button>
           </div>
         </div>
-        <HeroWeb3D />
+        <div style={{ flex:'1 1 280px', minWidth: 0 }}><HeroWeb3D /></div>
       </section>
 
-      <section id="features" style={{ padding:'70px 48px', maxWidth:'1280px', margin:'0 auto', width:'100%' }}>
+      <section id="features" style={{ padding:'clamp(40px,5vw,70px) clamp(16px,4vw,48px)', maxWidth:'1280px', margin:'0 auto', width:'100%' }}>
         <div style={{ textAlign:'center', marginBottom:'48px' }}>
           <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:'-0.5px', marginBottom:'8px' }}>Tools for High-Performance Success</h2>
           <p style={{ fontSize:'0.95rem', color:'var(--text-muted)', maxWidth:'600px', margin:'0 auto' }}>Everything you need to outperform the competition in a digital-first market.</p>
@@ -276,7 +276,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         </div>
       </section>
 
-      <section id="testimonials" style={{ padding:'50px 48px 70px 48px', maxWidth:'1280px', margin:'0 auto', width:'100%' }}>
+      <section id="testimonials" style={{ padding:'clamp(30px,4vw,50px) clamp(16px,4vw,48px) clamp(40px,5vw,70px)', maxWidth:'1280px', margin:'0 auto', width:'100%' }}>
         <div style={{ textAlign:'center', marginBottom:'36px' }}>
           <h2 style={{ fontSize:'1.8rem', fontWeight:800, marginBottom:'8px' }}>Used by high-performers at</h2>
           <div style={{ display:'flex', justifyContent:'center', gap:'24px', opacity:0.6, fontSize:'0.95rem', fontWeight:700, margin:'16px 0' }}>
@@ -301,7 +301,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         </div>
       </section>
 
-      <section id="pricing" style={{ padding:'70px 48px', maxWidth:'960px', margin:'0 auto', width:'100%' }}>
+      <section id="pricing" style={{ padding:'clamp(40px,5vw,70px) clamp(16px,4vw,48px)', maxWidth:'960px', margin:'0 auto', width:'100%' }}>
         <div style={{ textAlign:'center', marginBottom:'40px' }}>
           <h2 style={{ fontSize:'2rem', fontWeight:800, marginBottom:'6px' }}>Simple, Transparent Pricing</h2>
           <p style={{ fontSize:'0.95rem', color:'var(--text-muted)' }}>Invest in your career growth today</p>
@@ -332,7 +332,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         </div>
       </section>
 
-      <section style={{ padding:'50px 48px', maxWidth:'1050px', margin:'0 auto 50px auto', width:'100%' }}>
+      <section style={{ padding:'clamp(30px,4vw,50px) clamp(16px,4vw,48px)', maxWidth:'1050px', margin:'0 auto 50px auto', width:'100%' }}>
         <div style={{ backgroundColor:'var(--accent-primary)', borderRadius:'var(--radius-xl)', padding:'48px 36px', textAlign:'center', color:'#ffffff' }}>
           <h2 style={{ fontSize:'2.2rem', fontWeight:800, marginBottom:'12px', letterSpacing:'-0.5px' }}>Ready to accelerate your career?</h2>
           <p style={{ fontSize:'1rem', opacity:0.9, maxWidth:'560px', margin:'0 auto 28px auto', lineHeight:1.6 }}>Join 50,000+ professionals using AI to land high-paying jobs with confidence.</p>
@@ -340,7 +340,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         </div>
       </section>
 
-      <footer style={{ borderTop:'1px solid var(--border-color)', padding:'28px 48px', display:'flex', justifyContent:'space-between', alignItems:'center', color:'var(--text-muted)', fontSize:'0.82rem' }}>
+      <footer style={{ borderTop:'1px solid var(--border-color)', padding:'24px clamp(16px,4vw,48px)', display:'flex', justifyContent:'space-between', alignItems:'center', color:'var(--text-muted)', fontSize:'0.82rem', flexWrap:'wrap', gap:'12px' }}>
         <div><strong style={{ color:'var(--text-main)' }}>CareerPilot AI</strong><span style={{ margin:'0 8px' }}>•</span>© 2026 CareerPilot AI. Precision Career Growth.</div>
         <div style={{ display:'flex', gap:'18px' }}>
           <a href="#" style={{ color:'inherit', textDecoration:'none' }}>Privacy Policy</a>

@@ -9,11 +9,12 @@ import {
   Sparkles,
   Settings,
   LogOut,
-  User
+  User,
+  X
 } from 'lucide-react';
 
 
-export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUser, onSignOut }) {
+export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUser, onSignOut, isOpen, onClose }) {
   const navItems = [
     { id: 'dashboard',       label: 'Dashboard Overview',      icon: LayoutDashboard },
     { id: 'resume-builder',  label: 'ATS Resume & Builder',    icon: FileText, badge: 'ATS Engine' },
@@ -31,7 +32,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
   const photoURL = currentUser?.photoURL || null;
 
   return (
-    <aside className="sidebar-container" style={{
+    <aside className={`sidebar-container ${isOpen ? 'open' : ''}`} style={{
       width: '260px',
       backgroundColor: 'var(--bg-sidebar)',
       borderRight: '1px solid var(--border-color)',
@@ -42,23 +43,38 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
     }}>
       <div>
         {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 8px 20px 8px', borderBottom: '1px solid var(--border-color)', marginBottom: '20px' }}>
-          <div style={{
-            width: '36px', height: '36px',
-            borderRadius: '8px',
-            backgroundColor: 'var(--accent-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <Sparkles size={20} color="#ffffff" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px 20px 8px', borderBottom: '1px solid var(--border-color)', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '36px', height: '36px',
+              borderRadius: '8px',
+              backgroundColor: 'var(--accent-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Sparkles size={20} color="#ffffff" />
+            </div>
+            <div>
+              <h1 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.3px', margin: 0, color: 'var(--text-main)' }}>
+                Career<span style={{ color: 'var(--accent-primary)' }}>Pilot AI</span>
+              </h1>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', margin: 0, fontWeight: 600 }}>
+                Precision Career Platform
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.3px', margin: 0, color: 'var(--text-main)' }}>
-              Career<span style={{ color: 'var(--accent-primary)' }}>Pilot AI</span>
-            </h1>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', margin: 0, fontWeight: 600 }}>
-              Precision Career Platform
-            </p>
-          </div>
+
+          {/* Close button for mobile drawer */}
+          <button 
+            onClick={onClose} 
+            className="btn btn-secondary mobile-only-close"
+            style={{ 
+              width: '32px', height: '32px', padding: 0, borderRadius: '50%',
+              display: 'none', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid var(--border-color)'
+            }}
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {/* Navigation Items */}

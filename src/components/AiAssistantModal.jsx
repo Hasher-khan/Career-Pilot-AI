@@ -55,12 +55,12 @@ export default function AiAssistantModal({ isOpen, onClose, userData }) {
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
-      padding: '20px'
+      padding: 'clamp(8px, 3vw, 20px)'
     }}>
       <div className="glass-panel" style={{
         width: '100%',
         maxWidth: '650px',
-        height: '600px',
+        height: 'min(600px, 90dvh)',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: 'var(--bg-card)',

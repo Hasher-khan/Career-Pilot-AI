@@ -375,7 +375,7 @@ Requirements:
   // WELCOME
   // ════════════════════════════════════════════════════════════════════════════
   if (step === 'welcome') return (
-    <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+    <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 16px' }}>
       <div style={{ maxWidth: '620px', width: '100%', textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
           <div style={{
@@ -396,7 +396,7 @@ Requirements:
         `}</style>
 
         <div style={{ animation: 'cvFadeIn 0.5s ease forwards' }}>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '14px', color: 'var(--text-main)', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 900, marginBottom: '14px', color: 'var(--text-main)', lineHeight: 1.2 }}>
             Build Your <span style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI-Powered CV</span>
           </h1>
           <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', marginBottom: '36px', lineHeight: 1.75, maxWidth: '500px', margin: '0 auto 36px' }}>
@@ -458,7 +458,7 @@ Requirements:
     const sections = [...new Set(QUESTIONS.map(q => q.section))];
 
     return (
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '20px', animation: 'cvFadeIn 0.35s ease' }}>
+      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '12px 0', animation: 'cvFadeIn 0.35s ease' }}>
 
         {/* Progress Header */}
         <div className="glass-panel" style={{ padding: '20px 24px', marginBottom: '20px' }}>
@@ -495,7 +495,7 @@ Requirements:
 
         {/* Question Card */}
         <div className="glass-panel" style={{ padding: '36px', animation: 'cvFadeIn 0.3s ease' }} key={qIdx}>
-          <div style={{ display: 'flex', gap: '18px', marginBottom: '28px', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: '14px', marginBottom: '28px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <div style={{
               width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
               background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
@@ -508,7 +508,7 @@ Requirements:
               <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>
                 {currentQ.section}
               </p>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, lineHeight: 1.3 }}>
+              <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.3rem)', fontWeight: 800, color: 'var(--text-main)', margin: 0, lineHeight: 1.3 }}>
                 {currentQ.label}
                 {currentQ.optional && (
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', fontWeight: 400, marginLeft: '10px' }}>Optional</span>
@@ -559,7 +559,7 @@ Requirements:
             {currentQ.optional && ' · Tab to skip'}
           </p>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '28px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '28px', gap: '10px', flexWrap: 'wrap' }}>
             <button onClick={goBack} disabled={qIdx === 0} style={{
               padding: '10px 20px', borderRadius: '10px', border: '1px solid var(--border-color)',
               background: 'transparent', color: 'var(--text-muted)', cursor: qIdx === 0 ? 'not-allowed' : 'pointer',
@@ -684,7 +684,7 @@ Requirements:
             <button onClick={handleRestart} style={{ padding: '9px 16px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.83rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
               <RefreshCw size={14} /> Rebuild
             </button>
-            <button onClick={handleDownloadHTML} style={{ padding: '9px 18px', borderRadius: '10px', border: 'none', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button onClick={handleDownloadHTML} style={{ padding: '9px 18px', borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Download size={14} /> Download HTML
             </button>
             <button onClick={handlePrint} style={{ padding: '9px 18px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 14px rgba(99,102,241,0.4)' }}>
@@ -752,7 +752,7 @@ Requirements:
             <iframe
               srcDoc={generateResumeHtml(resumeData, selectedTemplate)}
               title="Resume Preview"
-              style={{ width: '100%', height: '700px', border: 'none', display: 'block' }}
+              style={{ width: '100%', height: 'min(700px, 70vh)', minHeight: '400px', border: 'none', display: 'block' }}
             />
           </div>
         )}

@@ -71,7 +71,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
       </div>
 
       {/* Metrics Row: ATS Score Ring & Readiness */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+      <div className="grid-2col-responsive">
         {/* ATS Score Card */}
         <div className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
           {/* Custom Score Meter Ring */}

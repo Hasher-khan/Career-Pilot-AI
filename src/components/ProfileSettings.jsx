@@ -104,11 +104,11 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
         ))}
       </div>
 
-      {/* Main Grid: Left Settings / Right Preferences */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+      {/* Settings Content */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', gridColumn: 'span 2' }}>
+        {/* Content */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {activeTab === 'personal' && (
             <>

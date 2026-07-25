@@ -18,10 +18,10 @@ export default function CareerAdvisor({ userData }) {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
-        {/* Left Column: Milestone Roadmap */}
-        <div className="glass-panel" style={{ padding: '24px', gridColumn: 'span 2' }}>
+        {/* Milestone Roadmap */}
+        <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>
               12-Week Strategic Progression Roadmap

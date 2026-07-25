@@ -43,6 +43,12 @@ export default function App() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);  // controls sign-in modal on landing page
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Close sidebar on navigation (mobile friendly)
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [activeTab]);
 
   // Debounce timer ref so we don't hammer Firestore on every keystroke
   const saveTimerRef = useRef(null);
@@ -198,6 +204,12 @@ export default function App() {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="app-container">
+      {/* Sidebar Mobile Backdrop Overlay */}
+      <div 
+        className={`sidebar-overlay ${isSidebarOpen ? 'open' : ''}`} 
+        onClick={() => setIsSidebarOpen(false)} 
+      />
+
       {/* Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab} 
@@ -205,6 +217,8 @@ export default function App() {
         openAiChat={() => setIsAiModalOpen(true)}
         currentUser={currentUser}
         onSignOut={handleSignOut}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* Main View Area */}
@@ -218,6 +232,7 @@ export default function App() {
           currentUser={currentUser}
           onSignOut={handleSignOut}
           isDataLoading={isDataLoading}
+          toggleSidebar={() => setIsSidebarOpen(prev => !prev)}
         />
 
         {/* Data loading shimmer */}

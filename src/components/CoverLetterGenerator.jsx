@@ -196,7 +196,7 @@ export default function CoverLetterGenerator({ userData, setUserData }) {
       </div>
 
       {/* Main Grid: Left Control Panel - Right Document Preview */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(340px, 42%) minmax(380px, 58%)', gap: '24px' }}>
+      <div className="cover-letter-grid">
         
         {/* Left Panel: AI Mode vs Editor Mode */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

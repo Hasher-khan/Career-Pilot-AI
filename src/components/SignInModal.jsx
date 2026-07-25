@@ -145,7 +145,7 @@ export default function SignInModal({ isOpen, onClose, onAuthSuccess, forceOpen 
         backgroundColor: '#ffffff',
         color: '#0b1c30',
         borderRadius: '20px',
-        padding: '36px 32px',
+        padding: 'clamp(20px, 5vw, 36px) clamp(16px, 5vw, 32px)',
         boxShadow: '0 25px 50px -12px rgba(0, 74, 198, 0.25)',
         position: 'relative',
         fontFamily: "'Inter', var(--font-primary)",
