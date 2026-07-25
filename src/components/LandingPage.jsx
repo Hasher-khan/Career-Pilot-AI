@@ -310,9 +310,10 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
           <div className="glass-panel" style={{ padding:'32px', display:'flex', flexDirection:'column', gap:'18px' }}>
             <div><h3 style={{ fontSize:'1rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'6px' }}>Basic</h3><div style={{ fontSize:'2.5rem', fontWeight:800 }}>$0 <span style={{ fontSize:'0.85rem', color:'var(--text-muted)' }}>/ month</span></div></div>
             <ul style={{ display:'flex', flexDirection:'column', gap:'10px', listStyle:'none', padding:0, fontSize:'0.88rem' }}>
-              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-success)" /> 1 Resume Build</li>
-              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-success)" /> 3 ATS Checks</li>
-              <li style={{ display:'flex', alignItems:'center', gap:'8px', opacity:0.5 }}><Check size={16} /> Unlimited AI Interviewing</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-success)" /> 1 AI Resume Build</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-success)" /> 3 ATS Score Checks</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-success)" /> Basic Cover Letter Drafts</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px', opacity:0.5 }}><Check size={16} /> 1 AI Mock Interview Session</li>
             </ul>
             <button onClick={onGetStarted} className="btn btn-secondary" style={{ width:'100%', marginTop:'auto', padding:'10px' }}>Start Free</button>
           </div>
@@ -322,10 +323,12 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
               <span className="badge badge-purple" style={{ padding:'5px 10px' }}>MOST POPULAR</span>
             </div>
             <ul style={{ display:'flex', flexDirection:'column', gap:'10px', listStyle:'none', padding:0, fontSize:'0.88rem' }}>
-              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> Unlimited Resumes</li>
-              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> Unlimited ATS Checks</li>
-              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> Personal Interview Coach</li>
-              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> 24/7 Career Advisor Access</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> Unlimited AI Resume & CV Builder</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> Unlimited ATS Score Checks & Optimization</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> AI Cover Letter & Cold Email Generator</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> AI Mock Interview Coach & Scoring</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> 24/7 AI Career Advisor & Roadmap Generator</li>
+              <li style={{ display:'flex', alignItems:'center', gap:'8px' }}><Check size={16} color="var(--accent-primary)" /> Premium Templates & Multi-Format Exports</li>
             </ul>
             <button onClick={onGetStarted} className="btn btn-primary" style={{ width:'100%', marginTop:'auto', padding:'12px' }}>Go Premium</button>
           </div>
