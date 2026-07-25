@@ -18,6 +18,7 @@ const firebaseConfig = {
   storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'careerpilot-ai-2a00f.firebasestorage.app',
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '512384699987',
   appId:             import.meta.env.VITE_FIREBASE_APP_ID || '1:512384699987:web:1d46ca335764bf3a0700a6',
+  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-FJGW2SPDC7',
 };
 
 const app = initializeApp(firebaseConfig);
