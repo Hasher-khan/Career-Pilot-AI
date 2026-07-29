@@ -433,7 +433,13 @@ Requirements:
             Answer a few simple questions. Our AI will write a <strong style={{ color: 'var(--text-main)' }}>professional, ATS-optimized resume</strong> for you — no writing skills required.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '40px', textAlign: 'left' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: '10px', 
+            marginBottom: '36px', 
+            textAlign: 'left' 
+          }}>
             {[
               { icon: '🤖', title: 'AI Resume Writer', desc: 'Writes everything for you' },
               { icon: '📊', title: 'ATS Score', desc: 'Real-time optimization score' },
@@ -443,14 +449,14 @@ Requirements:
               { icon: '🔒', title: '100% Private', desc: 'Your data stays secure' },
             ].map((f, i) => (
               <div key={i} style={{
-                padding: '16px', borderRadius: '14px',
+                padding: '12px', borderRadius: '12px',
                 background: 'var(--bg-input)', border: '1px solid var(--border-color)',
-                display: 'flex', alignItems: 'flex-start', gap: '10px'
+                display: 'flex', alignItems: 'center', gap: '10px'
               }}>
-                <span style={{ fontSize: '1.4rem' }}>{f.icon}</span>
-                <div>
-                  <p style={{ fontWeight: 700, fontSize: '0.88rem', margin: '0 0 2px', color: 'var(--text-main)' }}>{f.title}</p>
-                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>{f.desc}</p>
+                <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{f.icon}</span>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontWeight: 700, fontSize: '0.82rem', margin: '0 0 2px', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.title}</p>
+                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -464,7 +470,9 @@ Requirements:
               color: '#fff', fontSize: '1.05rem', fontWeight: 800,
               boxShadow: '0 10px 36px rgba(99,102,241,0.45)',
               display: 'inline-flex', alignItems: 'center', gap: '10px',
-              transition: 'all 0.25s ease'
+              transition: 'all 0.2s ease',
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
             }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 18px 48px rgba(99,102,241,0.55)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 36px rgba(99,102,241,0.45)'; }}
@@ -474,6 +482,7 @@ Requirements:
           <p style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', marginTop: '14px' }}>
             ~3 minutes · {QUESTIONS.length} questions · No credit card needed
           </p>
+
         </div>
       </div>
     </div>
