@@ -81,12 +81,27 @@ function generateResumeHtml(data, template) {
   };
   const p = palettes[template] || palettes.Modern;
 
+  // Vector SVG Icons
+  const emailIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; flex-shrink: 0;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+  const phoneIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; flex-shrink: 0;"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>`;
+  const locationIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; flex-shrink: 0;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+  const linkedinIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; flex-shrink: 0;"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>`;
+  const portfolioIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`;
+
+  const iconSpan = (icon, text) => `<span style="display:inline-flex;align-items:center;text-decoration:none;color:inherit;font-size:0.85rem;font-weight:500;">${icon}${text}</span>`;
+
+  const emailHtml = data.email ? iconSpan(emailIcon, data.email) : '';
+  const phoneHtml = data.phone ? iconSpan(phoneIcon, data.phone) : '';
+  const locationHtml = data.location ? iconSpan(locationIcon, data.location) : '';
+  const linkedinHtml = data.linkedin ? iconSpan(linkedinIcon, data.linkedin) : '';
+  const portfolioHtml = data.portfolio ? iconSpan(portfolioIcon, data.portfolio) : '';
+
   const expHtml = (data.experience || []).map(e => `
-    <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e5e7eb">
+    <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e5e7eb;page-break-inside:avoid">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:4px">
         <div>
           <strong style="font-size:1rem;color:${p.text};display:block">${e.title || e.company || ''}</strong>
-          <span style="color:${p.accent};font-weight:600;font-size:0.9rem">${e.company || ''}</span>
+          ${e.title && e.company ? `<span style="color:${p.accent};font-weight:600;font-size:0.9rem">${e.company}</span>` : ''}
         </div>
         <span style="font-size:0.82rem;color:${p.muted};font-weight:500">${e.dates || ''}</span>
       </div>
@@ -94,7 +109,7 @@ function generateResumeHtml(data, template) {
     </div>`).join('');
 
   const eduHtml = (data.education || []).map(e => `
-    <div style="margin-bottom:12px">
+    <div style="margin-bottom:12px;page-break-inside:avoid">
       <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap">
         <strong style="font-size:0.95rem;color:${p.text}">${e.degree || ''} ${e.major ? 'in ' + e.major : ''}</strong>
         <span style="font-size:0.8rem;color:${p.muted}">${e.year || ''}</span>
@@ -103,20 +118,20 @@ function generateResumeHtml(data, template) {
     </div>`).join('');
 
   const projHtml = (data.projects || []).map(pr => `
-    <div style="margin-bottom:14px">
+    <div style="margin-bottom:14px;page-break-inside:avoid">
       <strong style="color:${p.text};font-size:0.95rem">${pr.name || ''}</strong>
       ${pr.tech ? `<span style="font-size:0.78rem;color:${p.accent};margin-left:8px;font-weight:600">[${pr.tech}]</span>` : ''}
       <p style="font-size:0.85rem;color:${p.muted};margin:4px 0 0;line-height:1.55">${pr.description || ''}</p>
     </div>`).join('');
 
   const certHtml = (data.certifications || []).filter(Boolean).map(c =>
-    `<li style="margin-bottom:6px;font-size:0.88rem;color:${p.muted}">${c}</li>`).join('');
+    `<li style="margin-bottom:6px;font-size:0.88rem;color:${p.muted};page-break-inside:avoid">${c}</li>`).join('');
 
   const skillHtml = (data.skills || []).map(s =>
-    `<span style="display:inline-block;padding:5px 14px;margin:4px;background:${p.accent}18;color:${p.accent};border-radius:20px;font-size:0.82rem;font-weight:600;border:1px solid ${p.accent}33">${s}</span>`).join('');
+    `<span style="display:inline-block;padding:5px 14px;margin:4px;background:${p.accent}18;color:${p.accent};border-radius:20px;font-size:0.82rem;font-weight:600;border:1px solid ${p.accent}33;page-break-inside:avoid">${s}</span>`).join('');
 
   const sectionTitle = (title) =>
-    `<h2 style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:${p.accent};margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid ${p.accent}33">${title}</h2>`;
+    `<h2 style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:${p.accent};margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid ${p.accent}33;page-break-inside:avoid">${title}</h2>`;
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
     <title>${data.name || 'Resume'} - CV</title>
@@ -126,19 +141,34 @@ function generateResumeHtml(data, template) {
       .page{max-width:820px;margin:0 auto;background:#fff;min-height:100vh}
       .header{background:${p.headerBg};color:#fff;padding:40px 48px}
       .body{padding:32px 48px}
-      @media print{body{margin:0}.page{max-width:none;box-shadow:none}}
+      @media print{
+        @page {
+          margin: 0;
+        }
+        body{
+          margin: 0;
+          background: #fff;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .page{
+          max-width:none;
+          box-shadow:none;
+          min-height: 0;
+        }
+      }
     </style>
   </head><body><div class="page">
     <div class="header">
       <h1 style="font-size:2.4rem;font-weight:900;letter-spacing:-0.5px">${data.name || 'Your Name'}</h1>
-      <p style="font-size:1.1rem;opacity:0.9;margin:6px 0;font-weight:500">${data.targetRole || data.title || 'Professional'}</p>
-      <p style="font-size:0.85rem;opacity:0.75;margin-top:10px;display:flex;flex-wrap:wrap;gap:16px">
-        ${data.email ? `<span>✉ ${data.email}</span>` : ''}
-        ${data.phone ? `<span>📱 ${data.phone}</span>` : ''}
-        ${data.location ? `<span>📍 ${data.location}</span>` : ''}
-        ${data.linkedin ? `<span>🔗 ${data.linkedin}</span>` : ''}
-        ${data.portfolio ? `<span>🌐 ${data.portfolio}</span>` : ''}
-      </p>
+      <p style="font-size:1.1rem;opacity:0.95;margin:6px 0;font-weight:500">${data.targetRole || data.title || 'Professional'}</p>
+      <div style="font-size:0.85rem;opacity:0.9;margin-top:14px;display:flex;flex-wrap:wrap;gap:18px;line-height:1">
+        ${emailHtml}
+        ${phoneHtml}
+        ${locationHtml}
+        ${linkedinHtml}
+        ${portfolioHtml}
+      </div>
     </div>
     <div class="body">
       ${data.summary ? `${sectionTitle('Professional Summary')}<p style="font-size:0.92rem;color:${p.muted};line-height:1.75">${data.summary}</p>` : ''}

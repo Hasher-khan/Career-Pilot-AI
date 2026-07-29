@@ -339,7 +339,7 @@ body {
     min-height: 100vh !important;
     box-shadow: none !important;
     border: none !important;
-    padding: 20px 30px !important;
+    padding: 15mm 20mm !important;
     background: #ffffff !important;
     color: #0b1c30 !important;
     -webkit-print-color-adjust: exact !important;
@@ -348,7 +348,7 @@ body {
 
   @page {
     size: A4 portrait;
-    margin: 12mm 15mm;
+    margin: 0;
   }
 }
 

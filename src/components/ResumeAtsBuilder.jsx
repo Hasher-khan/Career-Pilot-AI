@@ -89,11 +89,11 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
   const handleAddExperience = () => {
     const newExp = {
       id: Date.now(),
-      role: "Senior Software Developer",
-      company: "TechNova Solutions",
-      period: "2023 - Present",
-      location: "Remote",
-      highlights: ["Led a cross-functional engineering team to build enterprise SaaS solutions."]
+      role: "",
+      company: "",
+      period: "",
+      location: "",
+      highlights: [""]
     };
     setUserData(prev => ({ ...prev, experience: [...prev.experience, newExp] }));
     showToast("Added new work experience position");
@@ -110,7 +110,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
         if (exp.id === expId) {
           return {
             ...exp,
-            highlights: [...(exp.highlights || []), "Optimized core workflows to enhance operational performance."]
+            highlights: [...(exp.highlights || []), ""]
           };
         }
         return exp;
@@ -455,6 +455,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                               className="form-input" 
                               value={exp.role} 
                               onChange={(e) => handleExperienceChange(exp.id, 'role', e.target.value)} 
+                              placeholder="e.g. Senior Software Developer"
                             />
                           </div>
                           <div>
@@ -464,6 +465,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                               className="form-input" 
                               value={exp.company} 
                               onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)} 
+                              placeholder="e.g. TechNova Solutions"
                             />
                           </div>
                         </div>
@@ -521,6 +523,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                               newHighlights[hIdx] = e.target.value;
                               handleExperienceChange(exp.id, 'highlights', newHighlights);
                             }}
+                            placeholder="e.g. Led a cross-functional engineering team to build enterprise SaaS solutions."
                           />
                           <button 
                             type="button"
