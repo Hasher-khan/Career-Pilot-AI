@@ -437,6 +437,7 @@ body {
     inset: 0;
     background-color: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 999;
     opacity: 0;
     pointer-events: none;
@@ -447,30 +448,62 @@ body {
     opacity: 1;
     pointer-events: auto;
   }
-  
+
   .main-content {
     padding: 16px 20px !important;
+    /* Add bottom padding for the mobile bottom tab bar */
+    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
   }
 }
 
 @media (max-width: 768px) {
   .main-content {
-    padding: 16px 14px !important;
+    padding: 12px 12px !important;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
   }
 }
 
-/* Touch targets and heights */
-.btn {
-  min-height: 44px;
-}
-.form-input, .form-select {
-  min-height: 44px;
-}
-.form-textarea {
-  min-height: 110px;
+@media (max-width: 480px) {
+  .main-content {
+    padding: 10px 10px !important;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  }
 }
 
-/* Responsive Grids & Columns */
+/* ── Touch targets and minimum heights ─────────────────────────────────────── */
+.btn {
+  min-height: 44px;
+  /* GPU-accelerated active state instead of hover */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.btn-primary:active {
+  background-color: var(--accent-primary-hover);
+}
+
+.btn-secondary:active {
+  background-color: var(--bg-card-hover);
+}
+
+.form-input, .form-select {
+  min-height: 48px;
+  font-size: 16px; /* Prevents iOS auto-zoom on focus */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.form-textarea {
+  min-height: 110px;
+  font-size: 16px; /* Prevents iOS auto-zoom on focus */
+}
+
+/* ── Responsive Grids & Columns ─────────────────────────────────────────────── */
 .grid-2col-responsive {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -490,7 +523,6 @@ body {
   .grid-3col-responsive {
     grid-template-columns: 1fr !important;
   }
-  /* Fix hardcoded gridColumn span 2 on collapsed grids */
   .grid-span-2-desktop {
     grid-column: span 1 !important;
   }
@@ -502,14 +534,19 @@ body {
   }
 }
 
-/* Responsive Typography */
+/* ── Fluid Typography with clamp() ─────────────────────────────────────────── */
 @media (max-width: 640px) {
-  h1 { font-size: 1.8rem !important; }
-  h2 { font-size: 1.35rem !important; }
-  h3 { font-size: 1.1rem !important; }
-  h4 { font-size: 0.95rem !important; }
+  h1 { font-size: clamp(1.4rem, 6vw, 1.8rem) !important; }
+  h2 { font-size: clamp(1.1rem, 4.5vw, 1.35rem) !important; }
+  h3 { font-size: clamp(0.95rem, 3.5vw, 1.1rem) !important; }
+  h4 { font-size: clamp(0.85rem, 3vw, 0.95rem) !important; }
+
+  .glass-panel {
+    padding: 16px !important;
+  }
 }
 
+/* ── Mobile visibility utilities ─────────────────────────────────────────────── */
 .mobile-only-close {
   display: none !important;
 }
@@ -534,11 +571,11 @@ body {
     display: none !important;
   }
   .header-title {
-    font-size: 1.2rem !important;
+    font-size: clamp(1rem, 4vw, 1.2rem) !important;
   }
 }
 
-/* Tool Grid Layout Splits */
+/* ── Tool Grid Layout Splits ───────────────────────────────────────────────── */
 .resume-builder-grid {
   display: grid;
   grid-template-columns: 45% 55%;
@@ -563,6 +600,114 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ── Mobile Bottom Tab Navigation Bar ─────────────────────────────────────── */
+/* Hidden on desktop, shown on mobile */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 998;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border-color);
+    padding: 6px 4px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    gap: 0;
+    align-items: stretch;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.25);
+  }
+
+  .mobile-bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-subtle);
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 56px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .mobile-bottom-nav-item.active {
+    color: var(--accent-primary);
+    background: var(--accent-primary-light);
+  }
+
+  .mobile-bottom-nav-item:active {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+
+  .mobile-bottom-nav-item svg {
+    flex-shrink: 0;
+  }
+
+  /* Hide sidebar completely on mobile — bottom nav takes over */
+  .sidebar-container {
+    /* Sidebar still accessible via hamburger but bottom nav is primary */
+  }
+}
+
+/* ── Resume Paper Mobile Fixes ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .resume-paper,
+  .printable-resume {
+    padding: 18px 16px !important;
+    min-height: auto !important;
+    border-radius: 4px;
+  }
+
+  /* Make resume preview scrollable horizontally on very small screens */
+  .resume-preview-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Glass panel touch state ─────────────────────────────────────────────── */
+.glass-panel {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on UI elements */
+.btn, .mobile-bottom-nav-item, nav button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Safe-area insets for notched iPhones ─────────────────────────────────── */
+.app-container {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ── Smooth GPU-accelerated scroll ─────────────────────────────────────────── */
+.main-content {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
 
 
 

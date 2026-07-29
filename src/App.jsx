@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { LayoutDashboard, FileText, Send, FileEdit, Settings } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardOverview from './components/DashboardOverview';
@@ -301,6 +302,32 @@ export default function App() {
         onClose={() => setIsAiModalOpen(false)}
         userData={userData}
       />
+
+      {/* ── Mobile Bottom Tab Navigation Bar (visible only on ≤1024px) ── */}
+      <nav className="mobile-bottom-nav" role="navigation" aria-label="Main navigation">
+        {[
+          { id: 'dashboard',      label: 'Home',    icon: LayoutDashboard },
+          { id: 'resume-builder', label: 'Resume',  icon: FileText },
+          { id: 'cover-letter',   label: 'Letter',  icon: Send },
+          { id: 'ai-cv-maker',    label: 'AI CV',   icon: FileEdit },
+          { id: 'settings',       label: 'Profile', icon: Settings },
+        ].map(item => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              className={`mobile-bottom-nav-item${isActive ? ' active' : ''}`}
+              onClick={() => setActiveTab(item.id)}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }
