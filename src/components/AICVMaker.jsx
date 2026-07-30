@@ -405,58 +405,58 @@ Requirements:
   // WELCOME
   // ════════════════════════════════════════════════════════════════════════════
   if (step === 'welcome') return (
-    <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 16px' }}>
+    <div style={{ minHeight: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 12px' }}>
       <div style={{ maxWidth: '620px', width: '100%', textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'clamp(16px, 4vw, 28px)' }}>
           <div style={{
-            width: '96px', height: '96px', borderRadius: '26px',
+            width: 'clamp(64px, 15vw, 84px)', height: 'clamp(64px, 15vw, 84px)', borderRadius: 'clamp(16px, 4vw, 22px)',
             background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 24px 64px rgba(99,102,241,0.45)',
+            boxShadow: '0 16px 40px rgba(99,102,241,0.3)',
             animation: 'cvFloat 3s ease-in-out infinite'
           }}>
-            <FileText size={46} color="#fff" />
+            <FileText size={32} color="#fff" />
           </div>
         </div>
         <style>{`
-          @keyframes cvFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+          @keyframes cvFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(0.5deg)}}
           @keyframes cvSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
           @keyframes cvPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(0.94)}}
-          @keyframes cvFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+          @keyframes cvFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         `}</style>
 
         <div style={{ animation: 'cvFadeIn 0.5s ease forwards' }}>
-          <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 900, marginBottom: '14px', color: 'var(--text-main)', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 'clamp(1.35rem, 5vw, 2rem)', fontWeight: 900, marginBottom: '10px', color: 'var(--text-main)', lineHeight: 1.2 }}>
             Build Your <span style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI-Powered CV</span>
           </h1>
-          <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', marginBottom: '36px', lineHeight: 1.75, maxWidth: '500px', margin: '0 auto 36px' }}>
+          <p style={{ fontSize: 'clamp(0.88rem, 3.5vw, 1rem)', color: 'var(--text-muted)', marginBottom: 'clamp(16px, 5vw, 28px)', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto clamp(16px, 5vw, 28px)' }}>
             Answer a few simple questions. Our AI will write a <strong style={{ color: 'var(--text-main)' }}>professional, ATS-optimized resume</strong> for you — no writing skills required.
           </p>
 
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: 'repeat(2, 1fr)', 
-            gap: '10px', 
-            marginBottom: '36px', 
+            gap: '8px', 
+            marginBottom: 'clamp(20px, 6vw, 32px)', 
             textAlign: 'left' 
           }}>
             {[
               { icon: '🤖', title: 'AI Resume Writer', desc: 'Writes everything for you' },
-              { icon: '📊', title: 'ATS Score', desc: 'Real-time optimization score' },
+              { icon: '📊', title: 'ATS Score', desc: 'Real-time optimization' },
               { icon: '🎨', title: '7 Templates', desc: 'Professional designs' },
               { icon: '📄', title: 'Export PDF/HTML', desc: 'Download instantly' },
               { icon: '✍️', title: 'Action Verbs', desc: 'AI-enhanced language' },
               { icon: '🔒', title: '100% Private', desc: 'Your data stays secure' },
             ].map((f, i) => (
               <div key={i} style={{
-                padding: '12px', borderRadius: '12px',
+                padding: '10px 8px', borderRadius: '10px',
                 background: 'var(--bg-input)', border: '1px solid var(--border-color)',
-                display: 'flex', alignItems: 'center', gap: '10px'
+                display: 'flex', alignItems: 'center', gap: '8px'
               }}>
-                <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{f.icon}</span>
+                <span style={{ fontSize: '1.15rem', flexShrink: 0 }}>{f.icon}</span>
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontWeight: 700, fontSize: '0.82rem', margin: '0 0 2px', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.title}</p>
-                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.desc}</p>
+                  <p style={{ fontWeight: 700, fontSize: '0.78rem', margin: '0 0 1px', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.title}</p>
+                  <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -465,21 +465,21 @@ Requirements:
           <button
             onClick={() => setStep('interview')}
             style={{
-              padding: '16px 44px', borderRadius: '16px', border: 'none', cursor: 'pointer',
+              padding: '14px clamp(24px, 8vw, 44px)', borderRadius: '14px', border: 'none', cursor: 'pointer',
               background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-              color: '#fff', fontSize: '1.05rem', fontWeight: 800,
-              boxShadow: '0 10px 36px rgba(99,102,241,0.45)',
-              display: 'inline-flex', alignItems: 'center', gap: '10px',
+              color: '#fff', fontSize: 'clamp(0.9rem, 3.5vw, 1.05rem)', fontWeight: 800,
+              boxShadow: '0 8px 28px rgba(99,102,241,0.35)',
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
               transition: 'all 0.2s ease',
               WebkitTapHighlightColor: 'transparent',
               touchAction: 'manipulation',
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 18px 48px rgba(99,102,241,0.55)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 36px rgba(99,102,241,0.45)'; }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 36px rgba(99,102,241,0.45)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(99,102,241,0.35)'; }}
           >
-            <Sparkles size={22} /> Start Building My Resume <ArrowRight size={18} />
+            <Sparkles size={18} /> Start Building My Resume <ArrowRight size={16} />
           </button>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', marginTop: '14px' }}>
+          <p style={{ fontSize: '0.74rem', color: 'var(--text-subtle)', marginTop: '10px' }}>
             ~3 minutes · {QUESTIONS.length} questions · No credit card needed
           </p>
 
