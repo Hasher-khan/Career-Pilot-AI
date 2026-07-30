@@ -1,0 +1,20 @@
+[ Your Local Computer ]
+      (Writing Anti-Gravity Code)
+                  │
+                  │ git push
+                  ▼
+       [ GitHub Repository ]
+      (Central Code Storage)
+                  │
+      ┌───────────┴───────────┐
+      │                       │
+ (Automatic)            (Requires Setup)
+      │                       │
+      ▼                       ▼
+[ Netlify ]           [ GitHub Actions ]
+ (Watches Repo)      (Runs .yml workflow file)
+      │                       │
+      │ deploys               │ deploys
+      ▼                       ▼
+[ Live Netlify ]      [ Live Firebase ]
+   Website                 Website

@@ -58,10 +58,10 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
               <Sparkles size={12} /> AI Career Pilot Active
             </div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px' }}>
-              Welcome back, {userData.name}! 👋
+              Welcome back, {userData.name || 'User'}! 👋
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '600px' }}>
-              Your resume is optimized for <strong style={{ color: 'var(--text-main)' }}>{userData.targetRole}</strong>. You have 3 recommended actions to boost your interview callback rate.
+              Your resume is optimized for <strong style={{ color: 'var(--text-main)' }}>{userData.targetRole || 'your target role'}</strong>. You have 3 recommended actions to boost your interview callback rate.
             </p>
           </div>
           <button className="btn btn-primary" onClick={openAiChat} style={{ padding: '12px 20px' }}>

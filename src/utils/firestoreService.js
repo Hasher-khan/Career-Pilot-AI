@@ -178,3 +178,44 @@ export async function loadGeneratedItems(uid, type) {
 
   return [];
 }
+
+// ─── Delete User Data ─────────────────────────────────────────────────────────
+
+/**
+ * Delete all user data from Firestore and localStorage.
+ * Called when user chooses to delete their account.
+ */
+export async function deleteUserData(uid) {
+  // 1. Clear all localStorage data for this user
+  try {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.includes(uid)) {
+        keysToRemove.push(key);
+      }
+    }
+    // Also clear any careerpilot-specific keys
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('careerpilot_')) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+  } catch (e) {
+    console.warn('Failed to clear localStorage:', e);
+  }
+
+  // 2. Delete user document from Firestore
+  if (!isFirebaseConfigured) return;
+
+  try {
+    const { deleteDoc } = await import('firebase/firestore');
+    const ref = doc(db, 'users', uid);
+    await withTimeout(deleteDoc(ref), 6000);
+  } catch (err) {
+    console.warn('Firestore user doc deletion failed:', err?.message);
+    // Non-fatal — the auth account will still be deleted
+  }
+}

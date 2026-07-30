@@ -7,6 +7,7 @@ import {
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   updateProfile,
+  deleteUser,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
@@ -74,6 +75,14 @@ export function AuthProvider({ children }) {
     await sendPasswordResetEmail(auth, email);
   }
 
+  // ── Delete Account ─────────────────────────────────────────────────────────
+  async function deleteAccount() {
+    if (auth.currentUser) {
+      await deleteUser(auth.currentUser);
+    }
+    setCurrentUser(null);
+  }
+
   // ── Friendly Firebase error messages ────────────────────────────────────────
   function getAuthErrorMessage(code, defaultMsg) {
     if (
@@ -109,6 +118,7 @@ export function AuthProvider({ children }) {
     signInWithGoogle,
     signOut,
     resetPassword,
+    deleteAccount,
     getAuthErrorMessage,
   };
 

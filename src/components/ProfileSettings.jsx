@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, 
   Settings, 
@@ -13,23 +13,48 @@ import {
   Check, 
   Sparkles,
   Sun,
-  Moon
+  Moon,
+  AlertTriangle,
+  X
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { deleteUserData } from '../utils/firestoreService';
 
 export default function ProfileSettings({ userData, setUserData, theme, toggleTheme }) {
+  const { currentUser, deleteAccount, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'skills' | 'experience' | 'security' | 'notifications'
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [avatarPhoto, setAvatarPhoto] = useState(userData.avatarPhoto || null);
   const photoInputRef = useRef(null);
 
+  // ── Delete account state ──
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
   const [formData, setFormData] = useState({
-    name: userData.name || 'Alex Chen',
-    email: userData.email || 'alex.chen@design.co',
-    title: userData.title || 'Senior Product Designer',
-    bio: userData.summary || 'Senior Product Designer with 8+ years of experience building AI-driven consumer products. Passionate about minimalism, glassmorphism, and high-performance user interfaces.',
+    name: userData.name || '',
+    email: userData.email || '',
+    title: userData.title || '',
+    bio: userData.summary || '',
     language: 'English (US)',
     careerAlerts: true
   });
+
+  // Sync formData with userData when userData updates (e.g., loaded asynchronously from Firestore)
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      name: userData.name || '',
+      email: userData.email || '',
+      title: userData.title || '',
+      bio: userData.summary || '',
+    }));
+    if (userData.avatarPhoto) {
+      setAvatarPhoto(userData.avatarPhoto);
+    }
+  }, [userData]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -54,6 +79,32 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
     }));
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
+  // ── Delete Account Handler ──
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    setIsDeleting(true);
+    setDeleteError('');
+
+    try {
+      // 1. Delete all user data from Firestore + localStorage
+      if (currentUser) {
+        await deleteUserData(currentUser.uid);
+      }
+
+      // 2. Delete the Firebase Auth account
+      await deleteAccount();
+
+      // Auth state listener will redirect to landing page automatically
+    } catch (err) {
+      console.error('Account deletion failed:', err);
+      const msg = err?.code === 'auth/requires-recent-login'
+        ? 'For security, please sign out, sign back in, and try again. Firebase requires a recent login to delete your account.'
+        : (err?.message || 'Failed to delete account. Please try again.');
+      setDeleteError(msg);
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -144,7 +195,7 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
                       }}>
                         {avatarPhoto
                           ? <img src={avatarPhoto} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : formData.name.charAt(0)
+                          : (formData.name ? formData.name.charAt(0).toUpperCase() : <User size={36} />)
                         }
                       </div>
 
@@ -184,6 +235,7 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
                           <input 
                             type="text" 
                             className="form-input" 
+                            placeholder="Enter your full name"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           />
@@ -193,6 +245,7 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
                           <input 
                             type="email" 
                             className="form-input" 
+                            placeholder="you@example.com"
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           />
@@ -204,6 +257,7 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
                         <input 
                           type="text" 
                           className="form-input" 
+                          placeholder="e.g. Software Engineer, Product Designer"
                           value={formData.title}
                           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         />
@@ -214,6 +268,7 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
                         <textarea 
                           className="form-textarea" 
                           rows={4}
+                          placeholder="Write a brief professional summary about yourself…"
                           value={formData.bio}
                           onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                         />
@@ -245,44 +300,50 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {userData.experience.map((exp) => (
-                    <div 
-                      key={exp.id} 
-                      style={{
-                        padding: '16px',
-                        background: 'var(--bg-input)',
-                        borderRadius: 'var(--radius-md)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <div style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '10px',
-                          backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                  {userData.experience && userData.experience.length > 0 ? (
+                    userData.experience.map((exp) => (
+                      <div 
+                        key={exp.id} 
+                        style={{
+                          padding: '16px',
+                          background: 'var(--bg-input)',
+                          borderRadius: 'var(--radius-md)',
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--accent-primary)'
-                        }}>
-                          <Briefcase size={20} />
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                          <div style={{
+                            width: '42px',
+                            height: '42px',
+                            borderRadius: '10px',
+                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--accent-primary)'
+                          }}>
+                            <Briefcase size={20} />
+                          </div>
+                          <div>
+                            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>{exp.role}</h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                              {exp.company} • {exp.period}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>{exp.role}</h4>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-                            {exp.company} • {exp.period}
-                          </p>
-                        </div>
-                      </div>
 
-                      <button className="btn btn-secondary" style={{ padding: '6px 10px' }}>
-                        <Edit2 size={14} />
-                      </button>
-                    </div>
-                  ))}
+                        <button className="btn btn-secondary" style={{ padding: '6px 10px' }}>
+                          <Edit2 size={14} />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                      No work experience added yet. Click "Add Role" to get started.
+                    </p>
+                  )}
                 </div>
               </div>
             </>
@@ -292,11 +353,17 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
             <div className="glass-panel" style={{ padding: '28px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}>Skills & Core Competencies</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {userData.skills.map((skill, i) => (
-                  <span key={i} className="badge badge-purple" style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
-                    {skill}
-                  </span>
-                ))}
+                {userData.skills && userData.skills.length > 0 ? (
+                  userData.skills.map((skill, i) => (
+                    <span key={i} className="badge badge-purple" style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    No skills added yet. Add skills via the Resume Builder.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -318,9 +385,197 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
                 CareerPilot AI enforces strict data confidentiality. Your personal information is encrypted and never sold.
               </p>
-              <button className="btn btn-outline" style={{ color: 'var(--accent-danger)', borderColor: 'var(--accent-danger)' }}>
+
+              {/* Data Summary */}
+              <div style={{
+                padding: '16px',
+                background: 'var(--bg-input)',
+                borderRadius: 'var(--radius-md)',
+                marginBottom: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                <p style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0, color: 'var(--text-main)' }}>
+                  What will be deleted:
+                </p>
+                <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                  <li>Your profile information (name, email, bio, photo)</li>
+                  <li>All saved resumes, cover letters, and generated content</li>
+                  <li>Skills, work experience, and education data</li>
+                  <li>Your Firebase authentication account</li>
+                  <li>All locally cached data</li>
+                </ul>
+              </div>
+
+              <button 
+                className="btn btn-outline" 
+                style={{ color: 'var(--accent-danger)', borderColor: 'var(--accent-danger)' }}
+                onClick={() => { setShowDeleteConfirm(true); setDeleteConfirmText(''); setDeleteError(''); }}
+              >
                 <ShieldAlert size={16} /> Delete Account & Clear Data
               </button>
+
+              {/* ── Delete Confirmation Modal ── */}
+              {showDeleteConfirm && (
+                <div style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 9999,
+                  backdropFilter: 'blur(4px)',
+                  animation: 'fadeIn 0.2s ease'
+                }}>
+                  <div style={{
+                    background: 'var(--bg-card)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '32px',
+                    maxWidth: '460px',
+                    width: '90%',
+                    border: '1px solid var(--border-color)',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                    animation: 'slideUp 0.25s ease'
+                  }}>
+                    {/* Modal Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '12px',
+                          backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <AlertTriangle size={22} color="#ef4444" />
+                        </div>
+                        <div>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#ef4444' }}>
+                            Delete Account
+                          </h3>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+                            This action is permanent
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setShowDeleteConfirm(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--text-muted)',
+                          padding: '4px'
+                        }}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Modal Body */}
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '20px' }}>
+                      This will <strong style={{ color: '#ef4444' }}>permanently delete</strong> your account and all associated data including your profile, resumes, cover letters, and generated content. This action <strong>cannot be undone</strong>.
+                    </p>
+
+                    {/* Confirmation Input */}
+                    <div className="form-group" style={{ margin: '0 0 20px 0' }}>
+                      <label className="form-label" style={{ fontSize: '0.8rem' }}>
+                        Type <strong style={{ color: '#ef4444', letterSpacing: '1px' }}>DELETE</strong> to confirm:
+                      </label>
+                      <input 
+                        type="text"
+                        className="form-input"
+                        placeholder="Type DELETE here"
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                        style={{ 
+                          borderColor: deleteConfirmText === 'DELETE' ? '#ef4444' : undefined,
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          letterSpacing: '2px',
+                          fontSize: '1rem'
+                        }}
+                        disabled={isDeleting}
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* Error Message */}
+                    {deleteError && (
+                      <div style={{
+                        padding: '12px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        marginBottom: '16px',
+                        fontSize: '0.8rem',
+                        color: '#ef4444',
+                        lineHeight: '1.5'
+                      }}>
+                        {deleteError}
+                      </div>
+                    )}
+
+                    {/* Modal Actions */}
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={() => setShowDeleteConfirm(false)}
+                        disabled={isDeleting}
+                        style={{ padding: '10px 20px' }}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        className="btn"
+                        onClick={handleDeleteAccount}
+                        disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                        style={{ 
+                          padding: '10px 20px',
+                          backgroundColor: deleteConfirmText === 'DELETE' ? '#ef4444' : '#666',
+                          color: '#fff',
+                          fontWeight: 700,
+                          opacity: deleteConfirmText !== 'DELETE' || isDeleting ? 0.5 : 1,
+                          cursor: deleteConfirmText !== 'DELETE' || isDeleting ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {isDeleting ? (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ 
+                              width: '14px', height: '14px', 
+                              border: '2px solid rgba(255,255,255,0.3)', 
+                              borderTop: '2px solid #fff',
+                              borderRadius: '50%',
+                              animation: 'spin 0.8s linear infinite',
+                              display: 'inline-block'
+                            }} />
+                            Deleting…
+                          </span>
+                        ) : (
+                          <>
+                            <Trash2 size={14} /> Delete My Account
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Inline keyframe animations for the modal */}
+              <style>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes spin { to { transform: rotate(360deg); } }
+              `}</style>
             </div>
           )}
 
