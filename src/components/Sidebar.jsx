@@ -1,27 +1,29 @@
-import React from 'react';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Send, 
+import React, { useState } from 'react';
+import {
+  LayoutDashboard,
+  FileText,
+  Send,
   Mail,
   FileEdit,
-  Bot, 
+  Bot,
   Sparkles,
   Settings,
   LogOut,
-  User,
-  X
+  ChevronUp,
+  X,
+  Zap
 } from 'lucide-react';
 
-
 export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUser, onSignOut, isOpen, onClose }) {
+  const [profileExpanded, setProfileExpanded] = useState(false);
+
   const navItems = [
-    { id: 'dashboard',       label: 'Dashboard Overview',      icon: LayoutDashboard },
-    { id: 'resume-builder',  label: 'ATS Resume & Builder',    icon: FileText, badge: 'ATS Engine' },
-    { id: 'cover-letter',    label: 'Cover Letter Generator',  icon: Send },
-    { id: 'email-generator', label: 'AI Email Generator',      icon: Mail, badge: 'New' },
-    { id: 'ai-cv-maker',     label: 'AI CV Maker',             icon: FileEdit, badge: 'AI' },
-    { id: 'settings',        label: 'Profile & Settings',      icon: Settings },
+    { id: 'dashboard',       label: 'Dashboard',             icon: LayoutDashboard },
+    { id: 'resume-builder',  label: 'ATS Resume & Builder',  icon: FileText,  badge: 'ATS' },
+    { id: 'cover-letter',    label: 'Cover Letter',          icon: Send },
+    { id: 'email-generator', label: 'AI Email Generator',    icon: Mail,      badge: 'New' },
+    { id: 'ai-cv-maker',     label: 'AI CV Maker',           icon: FileEdit,  badge: 'AI' },
+    { id: 'settings',        label: 'Profile & Settings',    icon: Settings },
   ];
 
   const displayName = currentUser?.displayName
@@ -31,168 +33,400 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
   const avatarLetter = displayName.charAt(0).toUpperCase();
   const photoURL = currentUser?.photoURL || null;
 
-  return (
-    <aside className={`sidebar-container ${isOpen ? 'open' : ''}`} style={{
-      width: '260px',
-      backgroundColor: 'var(--bg-sidebar)',
-      borderRight: '1px solid var(--border-color)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '20px 16px',
-      flexShrink: 0
-    }}>
-      <div>
-        {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px 20px 8px', borderBottom: '1px solid var(--border-color)', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '36px', height: '36px',
-              borderRadius: '8px',
-              backgroundColor: 'var(--accent-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <Sparkles size={20} color="#ffffff" />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.3px', margin: 0, color: 'var(--text-main)' }}>
-                Career<span style={{ color: 'var(--accent-primary)' }}>Pilot AI</span>
-              </h1>
-              <p style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', margin: 0, fontWeight: 600 }}>
-                Precision Career Platform
-              </p>
-            </div>
-          </div>
+  const badgeColors = {
+    ATS:  { bg: 'rgba(99,102,241,0.12)',  color: '#818cf8',  border: 'rgba(99,102,241,0.25)' },
+    New:  { bg: 'rgba(16,185,129,0.12)', color: '#34d399',  border: 'rgba(16,185,129,0.25)' },
+    AI:   { bg: 'rgba(236,72,153,0.12)', color: '#f472b6',  border: 'rgba(236,72,153,0.25)' },
+  };
 
-          {/* Close button for mobile drawer */}
-          <button 
-            onClick={onClose} 
-            className="btn btn-secondary mobile-only-close"
-            style={{ 
-              width: '32px', height: '32px', padding: 0, borderRadius: '50%',
-              display: 'none', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid var(--border-color)'
-            }}
-          >
-            <X size={16} />
-          </button>
+  return (
+    <aside
+      className={`sidebar-container ${isOpen ? 'open' : ''}`}
+      style={{
+        width: '252px',
+        backgroundColor: 'var(--bg-sidebar)',
+        borderRight: '1px solid var(--border-color)',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '0',
+        flexShrink: 0,
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Subtle background accent */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '200px',
+        background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none'
+      }} />
+
+      {/* ── Brand Header ──────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '22px 20px 18px',
+        position: 'relative'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+          {/* Logo mark */}
+          <div style={{
+            width: '34px', height: '34px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, #6366f1, #2563eb)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+            flexShrink: 0
+          }}>
+            <Sparkles size={17} color="#ffffff" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 style={{
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: 0,
+              color: 'var(--text-main)',
+              lineHeight: 1.2
+            }}>
+              Career<span style={{
+                background: 'linear-gradient(135deg, #818cf8, #60a5fa)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>Pilot AI</span>
+            </h1>
+            <p style={{
+              fontSize: '0.62rem',
+              color: 'var(--text-subtle)',
+              margin: 0,
+              fontWeight: 500,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase'
+            }}>
+              Precision Platform
+            </p>
+          </div>
         </div>
 
-        {/* Navigation Items */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '10px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  backgroundColor: isActive ? 'var(--accent-primary-light)' : 'transparent',
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
-                  fontSize: '0.88rem',
-                  fontWeight: isActive ? 700 : 500,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                  width: '100%'
-                }}
-              >
-                <Icon size={18} color={isActive ? 'var(--accent-primary)' : 'var(--text-subtle)'} />
-                <span style={{ flex: 1 }}>{item.label}</span>
-                {item.badge && (
-                  <span className="badge badge-purple" style={{ fontSize: '0.65rem' }}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Mobile close */}
+        <button
+          onClick={onClose}
+          className="mobile-only-close"
+          style={{
+            width: '30px', height: '30px', padding: 0,
+            borderRadius: '8px',
+            display: 'none', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid var(--border-color)',
+            background: 'var(--bg-card)',
+            cursor: 'pointer',
+            color: 'var(--text-muted)'
+          }}
+        >
+          <X size={15} />
+        </button>
       </div>
 
-      {/* Bottom Area */}
-      <div style={{ marginTop: 'auto', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {/* ── Section Label ─────────────────────────────────────────────── */}
+      <div style={{ padding: '0 20px 8px' }}>
+        <span style={{
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          color: 'var(--text-subtle)',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase'
+        }}>
+          Navigation
+        </span>
+      </div>
 
-        {/* User Card */}
-        {currentUser && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '10px 12px',
-            backgroundColor: 'var(--bg-input)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-color)'
-          }}>
-            {/* Avatar */}
+      {/* ── Navigation Items ──────────────────────────────────────────── */}
+      <nav style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+        padding: '0 12px',
+        flex: 1
+      }}>
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          const bc = item.badge ? badgeColors[item.badge] : null;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '11px',
+                padding: '9px 10px',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: isActive ? 'rgba(99,102,241,0.12)' : 'transparent',
+                color: isActive ? '#818cf8' : 'var(--text-muted)',
+                fontSize: '0.84rem',
+                fontWeight: isActive ? 600 : 400,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease',
+                width: '100%',
+                position: 'relative',
+                letterSpacing: isActive ? '-0.01em' : '0'
+              }}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)';
+                  e.currentTarget.style.color = 'var(--text-main)';
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--text-muted)';
+                }
+              }}
+            >
+              {/* Active indicator accent line */}
+              {isActive && (
+                <div style={{
+                  position: 'absolute',
+                  left: 0, top: '6px', bottom: '6px',
+                  width: '3px',
+                  borderRadius: '0 3px 3px 0',
+                  background: 'linear-gradient(180deg, #818cf8, #60a5fa)',
+                  marginLeft: '-10px'
+                }} />
+              )}
+
+              {/* Icon */}
+              <div style={{
+                width: '30px', height: '30px',
+                borderRadius: '8px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: isActive ? 'rgba(99,102,241,0.2)' : 'transparent',
+                transition: 'background-color 0.15s ease',
+                flexShrink: 0
+              }}>
+                <Icon
+                  size={16}
+                  color={isActive ? '#818cf8' : 'var(--text-subtle)'}
+                  strokeWidth={isActive ? 2 : 1.75}
+                />
+              </div>
+
+              <span style={{ flex: 1 }}>{item.label}</span>
+
+              {/* Badge */}
+              {bc && (
+                <span style={{
+                  fontSize: '0.58rem',
+                  fontWeight: 700,
+                  color: bc.color,
+                  background: bc.bg,
+                  border: `1px solid ${bc.border}`,
+                  padding: '2px 6px',
+                  borderRadius: '5px',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase'
+                }}>
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* ── Bottom Section ────────────────────────────────────────────── */}
+      <div style={{
+        padding: '16px 12px',
+        borderTop: '1px solid var(--border-color)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        marginTop: 'auto',
+        position: 'relative'
+      }}>
+
+        {/* AI Assistant CTA */}
+        <div style={{
+          padding: '14px 16px',
+          borderRadius: '12px',
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(37,99,235,0.07))',
+          border: '1px solid rgba(99,102,241,0.2)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
-              width: '34px', height: '34px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--accent-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: 700, fontSize: '0.85rem',
-              overflow: 'hidden', flexShrink: 0
+              width: '24px', height: '24px',
+              borderRadius: '6px',
+              background: 'rgba(99,102,241,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              {photoURL
-                ? <img src={photoURL} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : avatarLetter
-              }
+              <Bot size={13} color="#818cf8" />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.82rem', fontWeight: 700, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {displayName}
-              </p>
-              <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {currentUser.email}
-              </p>
-            </div>
+            <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-main)' }}>
+              CareerPilot Assistant
+            </span>
           </div>
-        )}
-
-        {/* Sign Out Button */}
-        {onSignOut && (
+          <p style={{
+            fontSize: '0.72rem',
+            color: 'var(--text-muted)',
+            lineHeight: 1.5,
+            fontWeight: 400,
+            margin: 0
+          }}>
+            Instant career advice, resume critiques & interview tips.
+          </p>
           <button
-            className="btn btn-secondary"
+            onClick={openAiChat}
             style={{
               width: '100%',
-              fontSize: '0.82rem',
-              padding: '9px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              color: 'var(--accent-error, #ef4444)',
-              borderColor: 'rgba(239,68,68,0.25)'
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #6366f1, #2563eb)',
+              color: '#fff',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 2px 10px rgba(99,102,241,0.3)',
+              transition: 'all 0.2s ease',
+              letterSpacing: '0.01em'
             }}
-            onClick={onSignOut}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(99,102,241,0.45)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 10px rgba(99,102,241,0.3)'; e.currentTarget.style.transform = 'none'; }}
           >
-            <LogOut size={15} /> Sign Out
-          </button>
-        )}
-
-        {/* AI Assistant Callout */}
-        <div className="glass-panel" style={{ padding: '14px', background: 'var(--bg-input)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <Bot size={16} color="var(--accent-primary)" />
-            <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>CareerPilot Assistant</span>
-          </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.4 }}>
-            Get instant career advice, resume critiques, and interview tips.
-          </p>
-          <button 
-            className="btn btn-primary" 
-            style={{ width: '100%', fontSize: '0.8rem', padding: '7px 12px' }}
-            onClick={openAiChat}
-          >
-            <Sparkles size={14} /> Launch Assistant
+            <Zap size={13} strokeWidth={2.5} />
+            Launch Assistant
           </button>
         </div>
+
+        {/* User profile area */}
+        {currentUser && (
+          <div style={{ position: 'relative' }}>
+            {/* Profile popover */}
+            {profileExpanded && (
+              <div style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: 0, right: 0,
+                marginBottom: '8px',
+                padding: '12px 14px',
+                borderRadius: '12px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 -8px 32px rgba(0,0,0,0.25)',
+                zIndex: 10,
+                animation: 'fadeIn 0.15s ease'
+              }}>
+                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: '0 0 10px', fontWeight: 400 }}>
+                  {currentUser.email}
+                </p>
+                {onSignOut && (
+                  <button
+                    onClick={onSignOut}
+                    style={{
+                      width: '100%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(239,68,68,0.25)',
+                      background: 'rgba(239,68,68,0.08)',
+                      color: '#f87171',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.14)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
+                  >
+                    <LogOut size={13} /> Sign Out
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Trigger row */}
+            <button
+              onClick={() => setProfileExpanded(prev => !prev)}
+              style={{
+                width: '100%',
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '9px 12px',
+                borderRadius: '10px',
+                border: '1px solid var(--border-color)',
+                background: profileExpanded ? 'rgba(255,255,255,0.04)' : 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+              onMouseLeave={e => {
+                if (!profileExpanded) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = 'var(--border-color)';
+                }
+              }}
+            >
+              {/* Avatar */}
+              <div style={{
+                width: '30px', height: '30px',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #6366f1, #2563eb)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                overflow: 'hidden',
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(99,102,241,0.3)'
+              }}>
+                {photoURL
+                  ? <img src={photoURL} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : avatarLetter
+                }
+              </div>
+
+              {/* Name */}
+              <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                <p style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  margin: 0,
+                  color: 'var(--text-main)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.3
+                }}>
+                  {displayName}
+                </p>
+                <p style={{
+                  fontSize: '0.65rem',
+                  color: 'var(--text-subtle)',
+                  margin: 0,
+                  fontWeight: 400,
+                  lineHeight: 1
+                }}>
+                  Pro Account
+                </p>
+              </div>
+
+              <ChevronUp
+                size={14}
+                color="var(--text-subtle)"
+                style={{ transform: profileExpanded ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s ease', flexShrink: 0 }}
+              />
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );
