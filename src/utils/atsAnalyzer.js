@@ -4,6 +4,33 @@ import { actionVerbsLibrary } from '../sampleData';
  * Evaluates resume text against target job description or industry benchmark.
  */
 export function analyzeResumeATS(resumeData, targetJdText = "") {
+  // ── Guard: no resume built yet ────────────────────────────────────────────
+  const hasContent =
+    (resumeData.name  && resumeData.name.trim().length  > 0) ||
+    (resumeData.email && resumeData.email.trim().length > 0) ||
+    (resumeData.summary && resumeData.summary.trim().length > 0) ||
+    (Array.isArray(resumeData.experience)     && resumeData.experience.length     > 0) ||
+    (Array.isArray(resumeData.education)      && resumeData.education.length      > 0) ||
+    (Array.isArray(resumeData.skills)         && resumeData.skills.length         > 0) ||
+    (Array.isArray(resumeData.projects)       && resumeData.projects.length       > 0) ||
+    (Array.isArray(resumeData.certifications) && resumeData.certifications.length > 0);
+
+  if (!hasContent) {
+    return {
+      score: 0,
+      statusGrade: 'No Resume Built Yet',
+      statusColor: '#4b5563',
+      issues: [],
+      suggestions: [],
+      missingKeywords: [],
+      strongKeywordsFound: [],
+      verbCount: 0,
+      metricsCount: 0,
+      isEmpty: true,          // <-- dashboard can key off this flag
+    };
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   let score = 70; // Base score
   const issues = [];
   const suggestions = [];
