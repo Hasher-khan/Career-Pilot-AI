@@ -7,6 +7,7 @@ import {
   BookOpen, Plus, Trash2, ArrowRight, Send, Bot, Layout, Check,
   X, Loader, Shield
 } from 'lucide-react';
+import { RESUME_TEMPLATES } from './ResumeTemplates';
 
 // ─── Gemini AI Call ──────────────────────────────────────────────────────────
 async function callGeminiAI(prompt) {
@@ -203,13 +204,21 @@ const QUESTIONS = [
 ];
 
 const TEMPLATES = [
-  { id: 'Modern',    icon: '⚡', desc: 'Clean & vibrant — Most popular' },
-  { id: 'Minimal',   icon: '◻', desc: 'Ultra clean white design' },
-  { id: 'Executive', icon: '👔', desc: 'Senior & management roles' },
-  { id: 'Corporate', icon: '🏢', desc: 'Teal professional look' },
-  { id: 'Creative',  icon: '🎨', desc: 'Bold & expressive design' },
-  { id: 'Student',   icon: '🎓', desc: 'Perfect for fresh graduates' },
-  { id: 'Developer', icon: '💻', desc: 'Built for tech professionals' },
+  { id: 'Modern',    icon: '⚡', desc: 'Clean & vibrant — Most popular',    colors: ['#6366f1', '#f8fafc'] },
+  { id: 'Minimal',   icon: '◻', desc: 'Ultra clean white design',           colors: ['#374151', '#ffffff'] },
+  { id: 'Executive', icon: '👔', desc: 'Senior & management roles',          colors: ['#1e3a5f', '#f0f4f8'] },
+  { id: 'Corporate', icon: '🏢', desc: 'Teal professional look',             colors: ['#0f766e', '#f0fdfa'] },
+  { id: 'Creative',  icon: '🎨', desc: 'Bold & expressive design',           colors: ['#db2777', '#fdf4ff'] },
+  { id: 'Student',   icon: '🎓', desc: 'Perfect for fresh graduates',        colors: ['#2563eb', '#eff6ff'] },
+  { id: 'Developer', icon: '💻', desc: 'Built for tech professionals',       colors: ['#16a34a', '#f0fdf4'] },
+];
+
+// Merged template list: HTML export templates + in-app live templates
+const ALL_TEMPLATES = [
+  ...TEMPLATES,
+  ...RESUME_TEMPLATES.filter(rt => !TEMPLATES.find(t => t.id.toLowerCase() === rt.id)).map(rt => ({
+    id: rt.id, icon: rt.icon, desc: rt.desc, colors: rt.colors, isLive: true,
+  })),
 ];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -873,29 +882,57 @@ Requirements:
         {/* ─ TEMPLATES ─ */}
         {activeTab === 'templates' && (
           <div className="glass-panel" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
               <Layout size={18} color="var(--accent-primary)" /> Choose Your Template
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '14px', marginBottom: '24px' }}>
-              {TEMPLATES.map(t => (
-                <button key={t.id} onClick={() => { setSelectedTemplate(t.id); setActiveTab('preview'); }} style={{
-                  padding: '22px 16px', borderRadius: '14px',
-                  border: `2px solid ${selectedTemplate === t.id ? '#6366f1' : 'var(--border-color)'}`,
-                  background: selectedTemplate === t.id ? 'rgba(99,102,241,0.08)' : 'var(--bg-input)',
-                  cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
-                  position: 'relative'
-                }}>
-                  {selectedTemplate === t.id && (
-                    <div style={{ position: 'absolute', top: '8px', right: '8px', width: '20px', height: '20px', borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Check size={12} color="#fff" />
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
+              Select a template and click Preview to see how your CV looks.
+            </p>
+
+            {/* HTML Export Templates */}
+            <p style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '12px' }}>Export / Print Templates</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '12px', marginBottom: '28px' }}>
+              {TEMPLATES.map(t => {
+                const isActive = selectedTemplate === t.id;
+                return (
+                  <button key={t.id} onClick={() => { setSelectedTemplate(t.id); setActiveTab('preview'); }} style={{
+                    padding: '0', borderRadius: '14px',
+                    border: `2px solid ${isActive ? '#6366f1' : 'var(--border-color)'}`,
+                    background: isActive ? 'rgba(99,102,241,0.06)' : 'var(--bg-input)',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+                    overflow: 'hidden',
+                    boxShadow: isActive ? '0 0 0 3px rgba(99,102,241,0.2)' : 'none',
+                  }}>
+                    {/* Color strip */}
+                    <div style={{ height: '6px', background: `linear-gradient(90deg, ${(t.colors || ['#6366f1','#8b5cf6']).join(',')})` }} />
+                    <div style={{ padding: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '1.8rem' }}>{t.icon}</span>
+                        {isActive && (
+                          <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Check size={11} color="#fff" />
+                          </div>
+                        )}
+                      </div>
+                      <p style={{ fontWeight: 800, fontSize: '0.82rem', margin: '0 0 4px', color: isActive ? 'var(--accent-primary)' : 'var(--text-main)' }}>{t.id}</p>
+                      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>{t.desc}</p>
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+                        {(t.colors || []).map((c, ci) => (
+                          <div key={ci} style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                        ))}
+                      </div>
                     </div>
-                  )}
-                  <span style={{ fontSize: '2.2rem' }}>{t.icon}</span>
-                  <span style={{ fontWeight: 800, fontSize: '0.9rem', color: selectedTemplate === t.id ? 'var(--accent-primary)' : 'var(--text-main)' }}>{t.id}</span>
-                  <span style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>{t.desc}</span>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Live In-App Templates (links to Resume Builder) */}
+            <div style={{ padding: '16px', borderRadius: '12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)' }}>
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', margin: '0 0 4px' }}>💡 <strong style={{ color: 'var(--text-main)' }}>More templates available!</strong></p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+                Go to <strong>Resume Builder</strong> to access 6 additional live templates: Sidebar Dark, Elegant Minimal, Executive Bold, Creative Accent, and Academic.
+              </p>
             </div>
           </div>
         )}

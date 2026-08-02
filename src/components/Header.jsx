@@ -106,7 +106,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+      <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
         {/* Search Bar */}
         <div className="header-search-bar" style={{ position: 'relative', width: '220px' }}>
           <Search size={16} color="var(--text-subtle)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
@@ -216,6 +216,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
         {/* User Profile Card */}
         <div 
           onClick={() => setActiveTab && setActiveTab('settings')}
+          className="header-profile-card"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -267,7 +268,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
         {onSignOut && (
           <button
             onClick={onSignOut}
-            className="btn btn-secondary"
+            className="btn btn-secondary header-signout-btn"
             style={{ fontSize: '0.82rem', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-error, #ef4444)' }}
             title="Sign Out"
           >

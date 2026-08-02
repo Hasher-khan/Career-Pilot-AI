@@ -23,12 +23,14 @@ import {
   Briefcase,
   GraduationCap,
   Edit3,
-  Check
+  Check,
+  Layout
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { analyzeResumeATS } from '../utils/atsAnalyzer';
 import { actionVerbsLibrary } from '../sampleData';
+import { RESUME_TEMPLATES, renderTemplate } from './ResumeTemplates';
 
 export default function ResumeAtsBuilder({ userData, setUserData }) {
   const [jobDescription, setJobDescription] = useState(
@@ -38,6 +40,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
   const [editorStep, setEditorStep] = useState(1); // 1: Personal, 2: Experience, 3: Skills/Edu
   const [zoomLevel, setZoomLevel] = useState(1);
   const [primaryColor, setPrimaryColor] = useState('#2563eb'); // Default CareerPilot Blue from Stitch
+  const [selectedTemplate, setSelectedTemplate] = useState('professional');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [newSkillInput, setNewSkillInput] = useState('');
   const [toastMessage, setToastMessage] = useState('');
@@ -174,7 +177,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
   };
 
   const handleExportText = () => {
-    let resumeText = `${userData.name || 'Alex Henderson'}\n${userData.targetRole || userData.title || ''}\n${userData.email || ''} | ${userData.phone || ''} | ${userData.location || ''}\n\nSUMMARY\n${userData.summary || ''}\n\nSKILLS\n${(userData.skills || []).join(", ")}\n\nEXPERIENCE\n`;
+    let resumeText = `${userData.name || 'Your Name'}\n${userData.targetRole || userData.title || ''}\n${userData.email || ''} | ${userData.phone || ''} | ${userData.location || ''}\n\nSUMMARY\n${userData.summary || ''}\n\nSKILLS\n${(userData.skills || []).join(", ")}\n\nEXPERIENCE\n`;
     
     (userData.experience || []).forEach(exp => {
       resumeText += `\n${exp.role} - ${exp.company} (${exp.period})\n`;
@@ -709,8 +712,61 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
 
         {/* Right Container: Live Formatted Resume Document Preview */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Floating Controls Bar above preview */}
+
+          {/* ── Template Picker ─────────────────────────────────────── */}
+          <div className="glass-panel" style={{ padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <Layout size={14} color="var(--accent-primary)" />
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>Choose Template</span>
+            </div>
+            <div style={{
+              display: 'flex', gap: '10px',
+              overflowX: 'auto', paddingBottom: '4px',
+              scrollbarWidth: 'thin',
+            }}>
+              {RESUME_TEMPLATES.map(tmpl => {
+                const isActive = selectedTemplate === tmpl.id;
+                return (
+                  <button
+                    key={tmpl.id}
+                    onClick={() => {
+                      setSelectedTemplate(tmpl.id);
+                      showToast(`Template: ${tmpl.name}`);
+                    }}
+                    style={{
+                      flexShrink: 0,
+                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                      gap: '6px',
+                      padding: '10px 12px',
+                      border: isActive ? `2px solid var(--accent-primary)` : '2px solid var(--border-color)',
+                      borderRadius: '10px',
+                      background: isActive ? 'var(--accent-primary)10' : 'var(--bg-input)',
+                      cursor: 'pointer',
+                      minWidth: '100px',
+                      transition: 'all 0.18s ease',
+                      boxShadow: isActive ? '0 0 0 3px var(--accent-primary)30' : 'none',
+                    }}
+                  >
+                    {/* Color swatch strip */}
+                    <div style={{ display: 'flex', gap: '3px' }}>
+                      {tmpl.colors.map((c, ci) => (
+                        <div key={ci} style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: c }} />
+                      ))}
+                    </div>
+                    <span style={{ fontSize: '1.1rem' }}>{tmpl.icon}</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? 'var(--accent-primary)' : 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                      {tmpl.name}
+                    </span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                      {tmpl.desc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Controls Bar ─────────────────────────────────────────── */}
           <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>Zoom:</span>
@@ -729,14 +785,14 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
             {/* Accent Color Palette Selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Palette size={15} color="var(--text-muted)" />
-              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)' }}>Theme:</span>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)' }}>Accent:</span>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {colorOptions.map(color => (
                   <div 
                     key={color.value}
                     onClick={() => {
                       setPrimaryColor(color.value);
-                      showToast(`Accent color updated: ${color.name}`);
+                      showToast(`Color: ${color.name}`);
                     }}
                     style={{
                       width: '18px',
@@ -786,7 +842,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                 className="resume-paper printable-resume"
                 style={{
                   boxShadow: '0 20px 40px rgba(11, 28, 48, 0.18)',
-                  padding: '40px',
+                  padding: selectedTemplate === 'sidebar-dark' ? '0' : '40px',
                   backgroundColor: '#ffffff',
                   color: '#0b1c30',
                   borderRadius: '4px',
@@ -795,219 +851,46 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                   height: 'auto',
                   position: 'relative',
                   boxSizing: 'border-box',
-                  display: 'flex',
-                  flexDirection: 'column'
+                  overflow: 'hidden',
                 }}
               >
                 {/* CAREERPILOT VERIFIED Watermark Header */}
-                <div style={{ position: 'absolute', top: '20px', right: '24px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', color: '#94a3b8', textTransform: 'uppercase' }}>
-                    CAREERPILOT VERIFIED
-                  </span>
-                </div>
-
-                {/* Resume Header with Live Inline Editing */}
-                <header style={{ borderBottom: `2.5px solid ${primaryColor}`, paddingBottom: '16px', marginBottom: '24px' }}>
-                  <h1 
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) => handleInlineBlur('name', e.target.innerText)}
-                    style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0b1c30', letterSpacing: '-0.5px', margin: 0, lineHeight: 1.15, outline: 'none', cursor: 'text' }}
-                    title="Click to edit Name directly"
-                  >
-                    {userData.name || 'Your Name'}
-                  </h1>
-                  <p 
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) => handleInlineBlur('targetRole', e.target.innerText)}
-                    style={{ fontSize: '1.2rem', fontWeight: 600, color: primaryColor, marginTop: '6px', marginBottom: '12px', outline: 'none', cursor: 'text' }}
-                    title="Click to edit Job Title directly"
-                  >
-                    {userData.targetRole || userData.title || 'Target Job Role'}
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '0.85rem', color: '#475569', fontWeight: 500 }}>
-                    {userData.email && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Mail size={14} color={primaryColor} /> 
-                        <span contentEditable suppressContentEditableWarning onBlur={(e) => handleInlineBlur('email', e.target.innerText)} style={{ outline: 'none' }}>
-                          {userData.email}
-                        </span>
-                      </span>
-                    )}
-                    {userData.phone && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Phone size={14} color={primaryColor} /> 
-                        <span contentEditable suppressContentEditableWarning onBlur={(e) => handleInlineBlur('phone', e.target.innerText)} style={{ outline: 'none' }}>
-                          {userData.phone}
-                        </span>
-                      </span>
-                    )}
-                    {userData.location && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <MapPin size={14} color={primaryColor} /> 
-                        <span contentEditable suppressContentEditableWarning onBlur={(e) => handleInlineBlur('location', e.target.innerText)} style={{ outline: 'none' }}>
-                          {userData.location}
-                        </span>
-                      </span>
-                    )}
+                {selectedTemplate !== 'sidebar-dark' && (
+                  <div style={{ position: 'absolute', top: '20px', right: '24px', zIndex: 10 }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '2px', color: '#94a3b8', textTransform: 'uppercase' }}>
+                      CAREERPILOT VERIFIED
+                    </span>
                   </div>
-                </header>
+                )}
 
-                {/* Resume Content Sections */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  
-                  {/* Professional Summary Section */}
-                  {userData.summary && (
-                    <section>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: primaryColor, textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: '8px' }}>
-                        PROFESSIONAL SUMMARY
-                      </h3>
-                      <p 
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => handleInlineBlur('summary', e.target.innerText)}
-                        style={{ fontSize: '0.9rem', color: '#334155', lineHeight: 1.6, margin: 0, outline: 'none', cursor: 'text' }}
-                        title="Click to edit summary text directly"
-                      >
-                        {userData.summary}
-                      </p>
-                    </section>
-                  )}
 
-                  {/* Work Experience Section */}
-                  {userData.experience && userData.experience.length > 0 && (
-                    <section>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: primaryColor, textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: '12px' }}>
-                        EXPERIENCE
-                      </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                        {userData.experience.map((exp, idx) => (
-                          <div key={exp.id || idx}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                              <h4 
-                                contentEditable
-                                suppressContentEditableWarning
-                                onBlur={(e) => handleExperienceChange(exp.id, 'company', e.target.innerText)}
-                                style={{ fontSize: '1rem', fontWeight: 700, color: '#0b1c30', margin: 0, outline: 'none' }}
-                              >
-                                {exp.company}
-                              </h4>
-                              <span 
-                                contentEditable
-                                suppressContentEditableWarning
-                                onBlur={(e) => handleExperienceChange(exp.id, 'period', e.target.innerText)}
-                                style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500, outline: 'none' }}
-                              >
-                                {exp.period}
-                              </span>
-                            </div>
-                            <p 
-                              contentEditable
-                              suppressContentEditableWarning
-                              onBlur={(e) => handleExperienceChange(exp.id, 'role', e.target.innerText)}
-                              style={{ fontSize: '0.88rem', fontStyle: 'italic', color: '#475569', margin: '2px 0 8px 0', fontWeight: 500, outline: 'none' }}
-                            >
-                              {exp.role}
-                            </p>
-                            {Array.isArray(exp.highlights) && (
-                              <ul style={{ paddingLeft: '18px', margin: 0, fontSize: '0.88rem', color: '#334155', lineHeight: 1.55 }}>
-                                {exp.highlights.map((bullet, bIdx) => (
-                                  <li 
-                                    key={bIdx} 
-                                    contentEditable
-                                    suppressContentEditableWarning
-                                    onBlur={(e) => {
-                                      const updatedHighlights = [...exp.highlights];
-                                      updatedHighlights[bIdx] = e.target.innerText;
-                                      handleExperienceChange(exp.id, 'highlights', updatedHighlights);
-                                    }}
-                                    style={{ marginBottom: '4px', outline: 'none' }}
-                                  >
-                                    {bullet}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-
-                  {/* Education Section */}
-                  {userData.education && userData.education.length > 0 && (
-                    <section>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: primaryColor, textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: '10px' }}>
-                        EDUCATION
-                      </h3>
-                      {userData.education.map((edu, idx) => (
-                        <div key={edu.id || idx} style={{ marginBottom: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0b1c30', margin: 0 }}>
-                              {edu.school}
-                            </h4>
-                            <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>{edu.year}</span>
-                          </div>
-                          <p style={{ fontSize: '0.88rem', color: '#334155', margin: '2px 0 0 0' }}>
-                            {edu.degree} {edu.gpa ? `(GPA: ${edu.gpa})` : ''}
-                          </p>
-                        </div>
-                      ))}
-                    </section>
-                  )}
-
-                  {/* Skills & Expertise Section */}
-                  {userData.skills && userData.skills.length > 0 && (
-                    <section>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: primaryColor, textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: '8px' }}>
-                        SKILLS
-                      </h3>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px 16px', fontSize: '0.88rem', color: '#334155' }}>
-                        {userData.skills.map((skill, idx) => (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ color: primaryColor, fontWeight: 800 }}>•</span> {skill}
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-
-                  {/* Key Projects Section */}
-                  {userData.projects && userData.projects.length > 0 && (
-                    <section>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: primaryColor, textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: '8px' }}>
-                        KEY PROJECTS
-                      </h3>
-                      {userData.projects.map((proj, idx) => (
-                        <div key={proj.id || idx} style={{ marginBottom: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0b1c30', margin: 0 }}>
-                              {proj.name}
-                            </h4>
-                            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{proj.tech}</span>
-                          </div>
-                          <p style={{ fontSize: '0.85rem', color: '#334155', margin: '2px 0 0 0' }}>
-                            {proj.description}
-                          </p>
-                        </div>
-                      ))}
-                    </section>
+                {/* Live Template Renderer */}
+                <div style={{
+                  padding: selectedTemplate === 'sidebar-dark' ? '0' : '0',
+                  flex: 1,
+                }}>
+                  {renderTemplate(
+                    selectedTemplate,
+                    userData,
+                    primaryColor,
+                    { handleInlineBlur, handleExperienceChange }
                   )}
                 </div>
 
                 {/* Real-time Status Indicator & Template Watermark */}
-                <div style={{ marginTop: '30px', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
-                    <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#64748b', textTransform: 'uppercase' }}>
-                      Live Sync Enabled (Click text on document to edit inline)
+                {selectedTemplate !== 'sidebar-dark' && (
+                  <div style={{ marginTop: '24px', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
+                      <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#64748b', textTransform: 'uppercase' }}>
+                        Live Sync Enabled
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10px', fontStyle: 'italic', color: '#94a3b8' }}>
+                      Template: {RESUME_TEMPLATES.find(t => t.id === selectedTemplate)?.name || 'Professional'}
                     </span>
                   </div>
-                  <span style={{ fontSize: '10px', fontStyle: 'italic', color: '#94a3b8' }}>
-                    Template: "The Professional" (v2.4)
-                  </span>
-                </div>
+                )}
               </div>
             </div>
           </div>

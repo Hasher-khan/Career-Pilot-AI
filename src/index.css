@@ -434,7 +434,7 @@ body {
   }
 
   .sidebar-container {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     bottom: 0;
@@ -590,6 +590,16 @@ body {
   }
   .header-title {
     font-size: clamp(1rem, 4vw, 1.2rem) !important;
+  }
+  .header-actions {
+    gap: 8px !important;
+  }
+  .header-profile-card {
+    padding: 5px 6px !important;
+    gap: 0 !important;
+  }
+  .header-signout-btn {
+    padding: 7px 10px !important;
   }
 }
 
