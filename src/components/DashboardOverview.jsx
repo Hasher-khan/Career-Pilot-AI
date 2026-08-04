@@ -324,6 +324,8 @@ function StatChip({ icon: Icon, label, value, color }) {
       borderRadius: '10px',
       background: `${color}0d`,
       border: `1px solid ${color}20`,
+      flex: '1 1 auto',
+      minWidth: '120px'
     }}>
       <Icon size={14} color={color} strokeWidth={2} />
       <div>
@@ -501,15 +503,12 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
       {/* ── Metrics Row ─────────────────────────────────────────────────── */}
       <div className="grid-2col-responsive">
         {/* ATS Score Card */}
-        <div style={{
+        <div className="dashboard-stats-card" style={{
           padding: '28px',
           borderRadius: '16px',
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '24px'
         }}>
           {/* Ring */}
           <div style={{ position: 'relative', flexShrink: 0 }}>

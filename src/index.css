@@ -736,6 +736,21 @@ body {
   scroll-behavior: smooth;
 }
 
+.dashboard-stats-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+@media (max-width: 540px) {
+  .dashboard-stats-card {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
 
 
 

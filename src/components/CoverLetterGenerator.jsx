@@ -32,6 +32,24 @@ export default function CoverLetterGenerator({ userData, setUserData }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  // Auto-scale cover letter preview on smaller screens
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        const padding = 32;
+        const availableWidth = window.innerWidth - padding;
+        const calculatedZoom = Math.min(1, Math.max(0.45, availableWidth / 680));
+        setZoomLevel(calculatedZoom);
+      } else {
+        setZoomLevel(1);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const letterRef = useRef(null);
 
@@ -453,27 +471,47 @@ export default function CoverLetterGenerator({ userData, setUserData }) {
                 </div>
 
                 {/* Formatted Cover Letter Canvas */}
-                <div style={{ padding: '20px', backgroundColor: 'var(--bg-input)', display: 'flex', justifyContent: 'center' }}>
-                  <div 
-                    ref={letterRef}
-                    className="resume-paper printable-resume"
-                    style={{
-                      width: '100%',
-                      maxWidth: '680px',
-                      minHeight: '780px',
-                      backgroundColor: '#ffffff',
-                      color: '#1a1a1a',
-                      padding: '44px 48px',
-                      borderRadius: '4px',
-                      boxShadow: isEditorMode ? '0 0 0 3px #2563eb, 0 20px 40px rgba(11, 28, 48, 0.18)' : '0 20px 40px rgba(11, 28, 48, 0.12)',
-                      fontFamily: "'Inter', sans-serif",
-                      boxSizing: 'border-box',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '20px',
-                      transition: 'box-shadow 0.2s ease'
-                    }}
-                  >
+                <div style={{
+                  padding: '24px 16px',
+                  backgroundColor: 'var(--bg-input)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'flex-start',
+                  overflowY: 'auto',
+                  overflowX: 'auto',
+                  width: '100%'
+                }}>
+                  {/* Scaled Wrapper to maintain layout height */}
+                  <div style={{
+                    width: '100%',
+                    maxWidth: '680px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    transform: `scale(${zoomLevel})`,
+                    transformOrigin: 'top center',
+                    transition: 'transform 0.15s ease'
+                  }}>
+                    <div 
+                      ref={letterRef}
+                      className="resume-paper printable-resume"
+                      style={{
+                        width: '100%',
+                        maxWidth: '680px',
+                        minHeight: '780px',
+                        backgroundColor: '#ffffff',
+                        color: '#1a1a1a',
+                        padding: '44px 48px',
+                        borderRadius: '4px',
+                        boxShadow: isEditorMode ? '0 0 0 3px #2563eb, 0 20px 40px rgba(11, 28, 48, 0.18)' : '0 20px 40px rgba(11, 28, 48, 0.12)',
+                        fontFamily: "'Inter', sans-serif",
+                        boxSizing: 'border-box',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px',
+                        transition: 'box-shadow 0.2s ease',
+                        flexShrink: 0
+                      }}
+                    >
                     {/* Applicant Header */}
                     <div style={{ marginBottom: '4px' }}>
                       <h2 
@@ -568,8 +606,8 @@ export default function CoverLetterGenerator({ userData, setUserData }) {
                     </div>
                   </div>
                 </div>
-
               </div>
+            </div>
 
               {/* Bottom Action Bar */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>

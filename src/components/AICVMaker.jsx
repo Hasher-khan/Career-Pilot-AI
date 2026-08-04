@@ -135,6 +135,7 @@ function generateResumeHtml(data, template) {
     `<h2 style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:${p.accent};margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid ${p.accent}33;page-break-inside:avoid">${title}</h2>`;
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${data.name || 'Resume'} - CV</title>
     <style>
       *{box-sizing:border-box;margin:0;padding:0}
@@ -142,6 +143,11 @@ function generateResumeHtml(data, template) {
       .page{max-width:820px;margin:0 auto;background:#fff;min-height:100vh}
       .header{background:${p.headerBg};color:#fff;padding:40px 48px}
       .body{padding:32px 48px}
+      @media (max-width:600px){
+        .header{padding:24px 20px}
+        .body{padding:20px 20px}
+        h1{font-size:1.8rem !important}
+      }
       @media print{
         @page {
           margin: 0;

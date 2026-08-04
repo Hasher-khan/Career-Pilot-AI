@@ -227,7 +227,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
 
         {/* CTA Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          <button onClick={openSignIn || onGetStarted} className="btn btn-secondary" style={{ border: 'none', fontSize: '0.88rem', padding: '9px 18px' }}>Sign In</button>
+          <button onClick={openSignIn || onGetStarted} className="btn btn-secondary lp-btn-signin" style={{ border: 'none', fontSize: '0.88rem', padding: '9px 18px' }}>Sign In</button>
           <button onClick={openSignIn || onGetStarted} className="btn btn-primary" style={{ fontSize: '0.88rem', padding: '9px 18px' }}>Get Started</button>
         </div>
       </header>
@@ -468,6 +468,9 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         @keyframes lp-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
         @media (max-width:768px) {
           .lp-desktop-nav { display: none !important; }
+        }
+        @media (max-width:480px) {
+          .lp-btn-signin { display: none !important; }
         }
       `}</style>
     </div>

@@ -40,6 +40,23 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
   const [editorStep, setEditorStep] = useState(1); // 1: Personal, 2: Experience, 3: Skills/Edu
   const [zoomLevel, setZoomLevel] = useState(1);
   const [primaryColor, setPrimaryColor] = useState('#2563eb'); // Default CareerPilot Blue from Stitch
+
+  // Auto-scale resume preview document on smaller screens
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        const padding = 32;
+        const availableWidth = window.innerWidth - padding;
+        const calculatedZoom = Math.min(1, Math.max(0.45, availableWidth / 680));
+        setZoomLevel(calculatedZoom);
+      } else {
+        setZoomLevel(1);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [selectedTemplate, setSelectedTemplate] = useState('professional');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [newSkillInput, setNewSkillInput] = useState('');
