@@ -39,15 +39,18 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'scan'
   const [editorStep, setEditorStep] = useState(1); // 1: Personal, 2: Experience, 3: Skills/Edu
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [primaryColor, setPrimaryColor] = useState('#2563eb'); // Default CareerPilot Blue from Stitch
 
   // Auto-scale resume preview document on smaller screens
   React.useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        const padding = 32;
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        const padding = 40;
         const availableWidth = window.innerWidth - padding;
-        const calculatedZoom = Math.min(1, Math.max(0.45, availableWidth / 680));
+        const calculatedZoom = Math.min(1, Math.max(0.4, availableWidth / 680));
         setZoomLevel(calculatedZoom);
       } else {
         setZoomLevel(1);
@@ -250,56 +253,64 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
       )}
 
       {/* Top Header Control Strip */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileText color="var(--accent-primary)" size={20} /> AI Resume Builder & PDF Studio
+      <div className="glass-panel" style={{ padding: isMobile ? '14px' : '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h3 style={{ fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FileText color="var(--accent-primary)" size={18} /> AI Resume Builder & PDF Studio
           </h3>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-            Craft ATS-optimized, high-converting resumes matching CareerPilot "The Professional" design template.
-          </p>
+          {!isMobile && (
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+              Craft ATS-optimized, high-converting resumes matching CareerPilot "The Professional" design template.
+            </p>
+          )}
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
           <button 
             className={`btn ${activeTab === 'editor' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ flex: isMobile ? 1 : 'none', fontSize: isMobile ? '0.8rem' : '0.88rem', padding: isMobile ? '8px 10px' : undefined }}
             onClick={() => {
               setActiveTab('editor');
               showToast("Editor Mode Active");
             }}
           >
-            <Sparkles size={15} /> Editor Mode
+            <Sparkles size={14} /> {isMobile ? 'Editor' : 'Editor Mode'}
           </button>
           <button 
             className={`btn ${activeTab === 'scan' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ flex: isMobile ? 1 : 'none', fontSize: isMobile ? '0.8rem' : '0.88rem', padding: isMobile ? '8px 10px' : undefined }}
             onClick={() => {
               setActiveTab('scan');
               showToast("ATS Matcher Active");
             }}
           >
-            <FileCheck size={15} /> ATS Matcher
+            <FileCheck size={14} /> {isMobile ? 'ATS Scan' : 'ATS Matcher'}
           </button>
 
-          <button className="btn btn-secondary" onClick={handleExportText} title="Export plain text for ATS job portals">
-            <Download size={15} /> Export TXT
-          </button>
+          {!isMobile && (
+            <button className="btn btn-secondary" onClick={handleExportText} title="Export plain text for ATS job portals">
+              <Download size={15} /> Export TXT
+            </button>
+          )}
 
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => window.print()}
-            title="Browser Print to PDF"
-          >
-            <Printer size={15} /> Print PDF
-          </button>
+          {!isMobile && (
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => window.print()}
+              title="Browser Print to PDF"
+            >
+              <Printer size={15} /> Print PDF
+            </button>
+          )}
 
           <button 
             className="btn btn-primary ai-glow" 
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf}
-            style={{ backgroundColor: '#2563eb', padding: '10px 20px' }}
+            style={{ backgroundColor: '#2563eb', padding: isMobile ? '8px 14px' : '10px 20px', flex: isMobile ? 1 : 'none', fontSize: isMobile ? '0.8rem' : '0.88rem' }}
           >
-            <Download size={16} /> 
-            {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF'}
+            <Download size={15} /> 
+            {isGeneratingPdf ? (isMobile ? 'Generating...' : 'Generating PDF...') : (isMobile ? 'Download' : 'Download PDF')}
           </button>
         </div>
       </div>
@@ -356,13 +367,13 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
 
               {/* Step 1: Personal Information */}
               {editorStep === 1 && (
-                <div className="glass-panel" style={{ padding: '24px' }}>
+                <div className="glass-panel" style={{ padding: isMobile ? '16px' : '24px' }}>
                   <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <User size={18} /> Personal Information
                   </h4>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <div className="form-group">
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Full Name</label>
                       <input 
                         type="text" 
@@ -372,7 +383,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                         placeholder="e.g. Alex Henderson"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Target Job Title</label>
                       <input 
                         type="text" 
@@ -384,21 +395,21 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <div className="form-group">
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Professional Email</label>
                       <input 
-                        type="text" 
+                        type="email" 
                         className="form-input" 
                         value={userData.email || ''} 
                         onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                         placeholder="alex.h@example.com"
                       />
                     </div>
-                    <div className="form-group">
+                    <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Phone Number</label>
                       <input 
-                        type="text" 
+                        type="tel" 
                         className="form-input" 
                         value={userData.phone || ''} 
                         onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
@@ -407,7 +418,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                     </div>
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group" style={{ marginTop: '12px' }}>
                     <label className="form-label">Location</label>
                     <input 
                       type="text" 
@@ -418,12 +429,12 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                     />
                   </div>
 
-                  <div className="form-group" style={{ marginTop: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label className="form-label">Professional Summary</label>
+                  <div className="form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
+                      <label className="form-label" style={{ margin: 0 }}>Professional Summary</label>
                       <button 
                         type="button"
-                        style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 0' }}
                         onClick={() => {
                           const polished = `${userData.summary || ''} Specialized in scalable design systems, empathetic user advocacy, and cross-functional team collaboration.`;
                           setUserData(prev => ({ ...prev, summary: polished }));
@@ -444,7 +455,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
 
                   <button 
                     className="btn btn-primary" 
-                    style={{ width: '100%', marginTop: '12px' }}
+                    style={{ width: '100%', marginTop: '8px' }}
                     onClick={() => setEditorStep(2)}
                   >
                     Continue to Work Experience →
@@ -454,8 +465,8 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
 
               {/* Step 2: Work Experience */}
               {editorStep === 2 && (
-                <div className="glass-panel" style={{ padding: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div className="glass-panel" style={{ padding: isMobile ? '16px' : '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                     <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Briefcase size={18} /> Work Experience
                     </h4>
@@ -465,40 +476,42 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                   </div>
 
                   {(userData.experience || []).map((exp) => (
-                    <div key={exp.id} style={{ padding: '16px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', marginBottom: '16px', borderLeft: '4px solid var(--accent-primary)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1 }}>
-                          <div>
-                            <label className="form-label">Job Title / Role</label>
-                            <input 
-                              type="text" 
-                              className="form-input" 
-                              value={exp.role} 
-                              onChange={(e) => handleExperienceChange(exp.id, 'role', e.target.value)} 
-                              placeholder="e.g. Senior Software Developer"
-                            />
-                          </div>
-                          <div>
-                            <label className="form-label">Company</label>
-                            <input 
-                              type="text" 
-                              className="form-input" 
-                              value={exp.company} 
-                              onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)} 
-                              placeholder="e.g. TechNova Solutions"
-                            />
-                          </div>
-                        </div>
+                    <div key={exp.id} style={{ padding: isMobile ? '12px' : '16px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', marginBottom: '16px', borderLeft: '4px solid var(--accent-primary)' }}>
+                      {/* Delete button row on mobile */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: isMobile ? '8px' : '0' }}>
                         <button 
                           onClick={() => handleRemoveExperience(exp.id)} 
-                          style={{ background: 'none', border: 'none', color: 'var(--accent-danger)', cursor: 'pointer', marginLeft: '12px' }}
+                          style={{ background: 'none', border: 'none', color: 'var(--accent-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}
                           title="Delete Position"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} /> {isMobile ? 'Remove' : ''}
                         </button>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                        <div>
+                          <label className="form-label">Job Title / Role</label>
+                          <input 
+                            type="text" 
+                            className="form-input" 
+                            value={exp.role} 
+                            onChange={(e) => handleExperienceChange(exp.id, 'role', e.target.value)} 
+                            placeholder="e.g. Senior Software Developer"
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label">Company</label>
+                          <input 
+                            type="text" 
+                            className="form-input" 
+                            value={exp.company} 
+                            onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)} 
+                            placeholder="e.g. TechNova Solutions"
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
                         <div>
                           <label className="form-label">Date Range</label>
                           <input 
@@ -570,7 +583,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
 
               {/* Step 3: Skills & Education */}
               {editorStep === 3 && (
-                <div className="glass-panel" style={{ padding: '24px' }}>
+                <div className="glass-panel" style={{ padding: isMobile ? '16px' : '24px' }}>
                   <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '14px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Award size={18} /> Skills & ATS Keywords
                   </h4>
@@ -630,8 +643,8 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                   </h4>
 
                   {(userData.education || []).map((edu, idx) => (
-                    <div key={idx} style={{ padding: '14px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', marginBottom: '10px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '8px' }}>
+                    <div key={idx} style={{ padding: isMobile ? '12px' : '14px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', marginBottom: '10px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '8px' }}>
                         <div>
                           <label className="form-label">Degree / Qualification</label>
                           <input 
@@ -728,7 +741,7 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
         </div>
 
         {/* Right Container: Live Formatted Resume Document Preview */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
 
           {/* ── Template Picker ─────────────────────────────────────── */}
           <div className="glass-panel" style={{ padding: '14px 16px' }}>
@@ -737,9 +750,10 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>Choose Template</span>
             </div>
             <div style={{
-              display: 'flex', gap: '10px',
-              overflowX: 'auto', paddingBottom: '4px',
+              display: 'flex', gap: '8px',
+              overflowX: 'auto', paddingBottom: '6px',
               scrollbarWidth: 'thin',
+              WebkitOverflowScrolling: 'touch',
             }}>
               {RESUME_TEMPLATES.map(tmpl => {
                 const isActive = selectedTemplate === tmpl.id;
@@ -784,18 +798,18 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
           </div>
 
           {/* ── Controls Bar ─────────────────────────────────────────── */}
-          <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>Zoom:</span>
-              <button className="btn btn-secondary" style={{ padding: '4px 8px' }} onClick={() => setZoomLevel(prev => Math.min(prev + 0.1, 1.3))}>
+          <div className="glass-panel" style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>Zoom:</span>
+              <button className="btn btn-secondary" style={{ padding: '4px 8px', minHeight: '34px' }} onClick={() => setZoomLevel(prev => Math.min(prev + 0.1, 1.3))}>
                 <ZoomIn size={14} />
               </button>
               <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{Math.round(zoomLevel * 100)}%</span>
-              <button className="btn btn-secondary" style={{ padding: '4px 8px' }} onClick={() => setZoomLevel(prev => Math.max(prev - 0.1, 0.7))}>
+              <button className="btn btn-secondary" style={{ padding: '4px 8px', minHeight: '34px' }} onClick={() => setZoomLevel(prev => Math.max(prev - 0.1, 0.4))}>
                 <ZoomOut size={14} />
               </button>
-              <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.72rem' }} onClick={() => setZoomLevel(1)}>
-                Reset
+              <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.72rem', minHeight: '34px' }} onClick={() => setZoomLevel(isMobile ? Math.min(1, Math.max(0.4, (window.innerWidth - 40) / 680)) : 1)}>
+                Fit
               </button>
             </div>
 
@@ -831,26 +845,26 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
           <div style={{
             overflowY: 'auto',
             overflowX: 'auto',
-            maxHeight: 'calc(100vh - 180px)',
-            padding: '24px 16px',
+            maxHeight: isMobile ? 'calc(100vh - 280px)' : 'calc(100vh - 180px)',
+            minHeight: isMobile ? '400px' : '650px',
+            padding: isMobile ? '12px 8px' : '24px 16px',
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             alignItems: 'flex-start',
             background: 'var(--bg-input)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border-color)',
-            minHeight: '650px',
-            width: '100%'
+            width: '100%',
+            WebkitOverflowScrolling: 'touch',
           }}>
-            {/* Scaled Wrapper to maintain layout height */}
+            {/* Scaled Wrapper — height adjusts for the scaled content */}
             <div style={{
-              width: '100%',
-              maxWidth: '680px',
-              display: 'flex',
-              justify: 'center',
+              width: '680px',
+              flexShrink: 0,
               transform: `scale(${zoomLevel})`,
-              transformOrigin: 'top center',
-              transition: 'transform 0.15s ease'
+              transformOrigin: 'top left',
+              transition: 'transform 0.15s ease',
+              marginBottom: `${(1 - zoomLevel) * -880}px`,  /* collapse dead space below scaled content */
             }}>
               {/* Direct Printable Document with Live Inline Editing */}
               <div 
@@ -863,12 +877,12 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                   backgroundColor: '#ffffff',
                   color: '#0b1c30',
                   borderRadius: '4px',
-                  width: '100%',
+                  width: '680px',
                   minHeight: '880px',
                   height: 'auto',
                   position: 'relative',
                   boxSizing: 'border-box',
-                  overflow: 'hidden',
+                  overflow: 'visible',
                 }}
               >
                 {/* CAREERPILOT VERIFIED Watermark Header */}
@@ -880,12 +894,8 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
                   </div>
                 )}
 
-
                 {/* Live Template Renderer */}
-                <div style={{
-                  padding: selectedTemplate === 'sidebar-dark' ? '0' : '0',
-                  flex: 1,
-                }}>
+                <div style={{ flex: 1 }}>
                   {renderTemplate(
                     selectedTemplate,
                     userData,
