@@ -444,6 +444,50 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         </div>
       </section>
 
+      {/* ── Developer Attribution Card ───────────────────────────────────── */}
+      <section style={{ padding: '0 clamp(16px,4vw,48px) 30px clamp(16px,4vw,48px)', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+        <div className="glass-panel" style={{ 
+          padding: '24px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          flexWrap: 'wrap', 
+          gap: '16px', 
+          background: 'rgba(99, 102, 241, 0.03)', 
+          borderColor: 'rgba(99, 102, 241, 0.15)',
+          borderRadius: 'var(--radius-lg)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #6366f1, #2563eb)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800,
+              color: '#fff',
+              fontSize: '1.2rem',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+            }}>
+              HK
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Developed by
+              </p>
+              <h4 style={{ margin: '2px 0 4px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                Hashir Khan
+              </h4>
+              <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                Vibe Coding Engineer & AI Specialist — Crafting intuitive web experiences powered by modern artificial intelligence and rapid creative execution.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer style={{ borderTop: '1px solid var(--border-color)', padding: '28px clamp(16px,4vw,48px)', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
