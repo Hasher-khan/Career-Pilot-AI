@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, Bell, Search, ShieldCheck, LogOut, Loader, Info, CheckCircle2, Sparkles, Menu } from 'lucide-react';
+import { Sun, Moon, Bell, Search, ShieldCheck, LogOut, Loader, Info, CheckCircle2, Sparkles, Menu, X } from 'lucide-react';
 
 export default function Header({ theme, toggleTheme, userData, activeTab, setActiveTab, currentUser, onSignOut, isDataLoading, toggleSidebar }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnread, setHasUnread] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const titles = {
     'dashboard':      'Dashboard Overview',
@@ -128,7 +135,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
           {theme === 'dark' ? <Sun size={17} color="#f59e0b" /> : <Moon size={17} color="#2563eb" />}
         </button>
 
-        {/* Notification Bell Dropdown Container */}
+        {/* Notification Bell */}
         <div ref={dropdownRef} style={{ position: 'relative' }}>
           <button 
             onClick={toggleNotifications}
@@ -146,62 +153,104 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
             )}
           </button>
 
-          {/* Notifications Dropdown Card */}
+          {/* ── Backdrop (mobile only) */}
+          {showNotifications && isMobile && (
+            <div
+              onClick={() => setShowNotifications(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(0,0,0,0.45)',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+                zIndex: 1998,
+              }}
+            />
+          )}
+
+          {/* ── Notifications Panel */}
           {showNotifications && (
-            <div className="glass-panel" style={{
-              position: 'absolute',
-              top: '44px',
-              right: 0,
-              width: '320px',
-              zIndex: 999,
-              boxShadow: '0 20px 40px rgba(11, 28, 48, 0.25)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-lg)',
-              backgroundColor: 'var(--bg-sidebar)',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+            <div
+              className="glass-panel"
+              style={isMobile ? {
+                // Mobile: fixed bottom sheet / full-width top-anchored panel
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1999,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+                border: 'none',
+                borderBottom: '1px solid var(--border-color)',
+                borderRadius: '0 0 var(--radius-xl) var(--radius-xl)',
+                backgroundColor: 'var(--bg-sidebar)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              } : {
+                // Desktop: absolute dropdown
+                position: 'absolute',
+                top: '44px',
+                right: 0,
+                width: '320px',
+                zIndex: 999,
+                boxShadow: '0 20px 40px rgba(11,28,48,0.25)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'var(--bg-sidebar)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              {/* Header row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                 <span style={{ fontSize: '0.88rem', fontWeight: 800 }}>Workspace Notifications</span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>3 alerts</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>3 alerts</span>
+                  <button
+                    onClick={() => setShowNotifications(false)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}
+                    aria-label="Close notifications"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '280px', overflowY: 'auto' }}>
+              {/* Notification items */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: isMobile ? '60vh' : '280px', overflowY: 'auto' }}>
                 {notificationList.map((notif) => {
                   const IconComponent = notif.icon;
                   return (
-                    <div 
-                      key={notif.id} 
+                    <div
+                      key={notif.id}
                       style={{
                         display: 'flex',
-                        gap: '10px',
-                        padding: '8px',
-                        borderRadius: 'var(--radius-sm)',
+                        gap: '12px',
+                        padding: '10px',
+                        borderRadius: 'var(--radius-md)',
                         backgroundColor: 'var(--bg-input)',
-                        transition: 'background-color 0.15s ease',
-                        cursor: 'default'
+                        cursor: 'default',
                       }}
                     >
                       <div style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
+                        width: '32px', height: '32px',
+                        borderRadius: '8px',
                         backgroundColor: `${notif.color}15`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
                       }}>
-                        <IconComponent size={14} color={notif.color} />
+                        <IconComponent size={15} color={notif.color} />
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>{notif.title}</span>
-                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{notif.time}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.3 }}>{notif.title}</span>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', flexShrink: 0 }}>{notif.time}</span>
                         </div>
-                        <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '3px 0 0 0', lineHeight: 1.35 }}>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0 0', lineHeight: 1.45, wordBreak: 'break-word' }}>
                           {notif.description}
                         </p>
                       </div>
