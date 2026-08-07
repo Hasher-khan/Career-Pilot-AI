@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, Bell, Search, ShieldCheck, LogOut, Loader, Info, CheckCircle2, Sparkles, Menu, X } from 'lucide-react';
+import { Sun, Moon, Bell, Search, ShieldCheck, LogOut, Loader, Info, CheckCircle2, Sparkles, Menu, X, Cloud, CloudOff, WifiOff } from 'lucide-react';
 
-export default function Header({ theme, toggleTheme, userData, activeTab, setActiveTab, currentUser, onSignOut, isDataLoading, toggleSidebar }) {
+export default function Header({ theme, toggleTheme, userData, activeTab, setActiveTab, currentUser, onSignOut, isDataLoading, toggleSidebar, syncStatus }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnread, setHasUnread] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -307,7 +307,13 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
             <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
               {isDataLoading
                 ? <><Loader size={9} /> Loading…</>
-                : <><ShieldCheck size={10} color="var(--accent-success)" /> Signed In</>
+                : syncStatus === 'saving'
+                  ? <><Loader size={9} style={{ animation: 'spin 1s linear infinite' }} /> Syncing…</>
+                  : syncStatus === 'saved'
+                    ? <><Cloud size={9} color="var(--accent-success)" /> Saved to cloud</>
+                    : syncStatus === 'error'
+                      ? <><WifiOff size={9} color="#f59e0b" /> Local only — no sync</>
+                      : <><ShieldCheck size={10} color="var(--accent-success)" /> Signed In</>
               }
             </span>
           </div>

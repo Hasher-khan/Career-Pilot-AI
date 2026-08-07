@@ -475,13 +475,13 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
             </div>
             <div>
               <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Developed by
+                Built by
               </p>
               <h4 style={{ margin: '2px 0 4px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
                 Hashir Khan
               </h4>
               <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                Vibe Coding Engineer & AI Specialist — Crafting intuitive web experiences powered by modern artificial intelligence and rapid creative execution.
+                AI & Web Solutions Engineer dedicated to building smart, responsive, and high-impact digital products.
               </p>
             </div>
           </div>

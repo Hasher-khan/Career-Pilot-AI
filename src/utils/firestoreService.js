@@ -39,24 +39,31 @@ function withTimeout(promise, ms = 4000) {
 export async function saveUserProfile(uid, data) {
   const clean = JSON.parse(JSON.stringify(data));
 
-  // 1. Always save to localStorage as immediate cache
+  // 1. Always save to localStorage as immediate cache (including avatarPhoto)
   try {
     localStorage.setItem(`careerpilot_profile_${uid}`, JSON.stringify(clean));
   } catch (e) {
     console.warn('LocalStorage save error:', e);
   }
 
-  // 2. Save to Firestore in the background (non-blocking after localStorage)
+  // 2. Save to Firestore — strip avatarPhoto because base64 images can exceed
+  //    Firestore's 1 MB document limit, causing silent save failures that break
+  //    cross-device sync. The photo is already cached in localStorage above.
   if (!isFirebaseConfigured) return;
 
   try {
+    // eslint-disable-next-line no-unused-vars
+    const { avatarPhoto, ...firestoreData } = clean;
     const ref = doc(db, 'users', uid);
     await withTimeout(
-      setDoc(ref, { ...clean, updatedAt: serverTimestamp() }, { merge: true })
+      setDoc(ref, { ...firestoreData, updatedAt: serverTimestamp() }, { merge: true }),
+      6000  // increase to 6 s for slow mobile connections
     );
   } catch (err) {
     // Silently fall back — data is already in localStorage
     console.warn('Firestore save (using localStorage fallback):', err?.message);
+    // Re-throw so callers can show a "sync failed" warning if desired
+    throw err;
   }
 }
 
@@ -69,13 +76,29 @@ export async function loadUserProfile(uid) {
   if (isFirebaseConfigured) {
     try {
       const ref  = doc(db, 'users', uid);
-      const snap = await withTimeout(getDoc(ref));
+      const snap = await withTimeout(getDoc(ref), 6000);
 
       if (snap.exists()) {
-        const data = snap.data();
-        // Keep localStorage in sync
-        localStorage.setItem(`careerpilot_profile_${uid}`, JSON.stringify(data));
-        return data;
+        const firestoreData = snap.data();
+
+        // Merge with localStorage to restore the avatarPhoto (never stored in
+        // Firestore — it's too large). This way the photo persists per-device.
+        let mergedData = firestoreData;
+        try {
+          const local = localStorage.getItem(`careerpilot_profile_${uid}`);
+          if (local) {
+            const localData = JSON.parse(local);
+            mergedData = {
+              ...firestoreData,
+              // Keep local avatarPhoto if Firestore doesn't have one
+              avatarPhoto: firestoreData.avatarPhoto || localData.avatarPhoto || null,
+            };
+          }
+        } catch (e) { /* ignore localStorage read errors */ }
+
+        // Keep localStorage in sync with latest Firestore data
+        localStorage.setItem(`careerpilot_profile_${uid}`, JSON.stringify(mergedData));
+        return mergedData;
       }
     } catch (err) {
       console.warn('Firestore load (falling back to localStorage):', err?.message);

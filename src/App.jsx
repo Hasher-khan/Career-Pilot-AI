@@ -45,6 +45,8 @@ export default function App() {
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);  // controls sign-in modal on landing page
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // 'idle' | 'saving' | 'saved' | 'error'
+  const [syncStatus, setSyncStatus] = useState('idle');
 
   // Close sidebar on navigation (mobile friendly)
   useEffect(() => {
@@ -110,10 +112,19 @@ export default function App() {
   const debouncedSave = useCallback((data) => {
     if (!currentUser) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    setSyncStatus('saving');
     saveTimerRef.current = setTimeout(() => {
-      saveUserProfile(currentUser.uid, data).catch(err =>
-        console.error('Auto-save failed:', err)
-      );
+      saveUserProfile(currentUser.uid, data)
+        .then(() => {
+          setSyncStatus('saved');
+          setTimeout(() => setSyncStatus('idle'), 3000);
+        })
+        .catch(err => {
+          console.error('Auto-save failed:', err);
+          // Data is in localStorage — not lost, just not synced to cloud
+          setSyncStatus('error');
+          setTimeout(() => setSyncStatus('idle'), 5000);
+        });
     }, 1500);
   }, [currentUser]);
 
@@ -234,6 +245,7 @@ export default function App() {
           onSignOut={handleSignOut}
           isDataLoading={isDataLoading}
           toggleSidebar={() => setIsSidebarOpen(prev => !prev)}
+          syncStatus={syncStatus}
         />
 
         {/* Data loading shimmer */}

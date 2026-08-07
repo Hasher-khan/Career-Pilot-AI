@@ -24,6 +24,7 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
   const { currentUser, deleteAccount, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'skills' | 'experience' | 'security' | 'notifications'
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [syncError, setSyncError] = useState(false);
   const [avatarPhoto, setAvatarPhoto] = useState(userData.avatarPhoto || null);
   const photoInputRef = useRef(null);
 
@@ -70,6 +71,8 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
 
   const handleSave = (e) => {
     e.preventDefault();
+    setSyncError(false);
+    setSavedSuccess(false);
     setUserData(prev => ({
       ...prev,
       name: formData.name,
@@ -77,6 +80,8 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
       title: formData.title,
       summary: formData.bio
     }));
+    // Show "Saving…" briefly then success (the actual cloud save happens
+    // via the debounced auto-save triggered by setUserData above)
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
   };
@@ -277,7 +282,11 @@ export default function ProfileSettings({ userData, setUserData, theme, toggleTh
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
                         {savedSuccess ? (
                           <span style={{ fontSize: '0.85rem', color: 'var(--accent-success)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Check size={16} /> Changes Saved Successfully!
+                            <Check size={16} /> Saved! Syncing to cloud…
+                          </span>
+                        ) : syncError ? (
+                          <span style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            ⚠️ Saved locally — cloud sync failed
                           </span>
                         ) : <span></span>}
 
