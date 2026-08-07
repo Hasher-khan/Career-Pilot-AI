@@ -15,7 +15,9 @@ import {
   BookOpen,
   Activity,
   Clock,
-  Star
+  Star,
+  Mail,
+  FileEdit
 } from 'lucide-react';
 import { analyzeResumeATS } from '../utils/atsAnalyzer';
 
@@ -356,17 +358,17 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
       color: '#2563eb'
     },
     {
-      id: 'interview-coach',
-      title: 'Practice Interview',
-      description: 'Simulate mock interview & receive 5-metric scoring',
-      icon: MessageSquare,
+      id: 'email-generator',
+      title: 'AI Email Generator',
+      description: 'Craft professional follow-ups, networking & application emails',
+      icon: Mail,
       color: '#ec4899'
     },
     {
-      id: 'career-advisor',
-      title: 'Skill Gap & Roadmap',
-      description: 'Explore a personalized skill learning path',
-      icon: Compass,
+      id: 'ai-cv-maker',
+      title: 'AI CV Maker',
+      description: 'Generate premium CV layouts & customize styling for export',
+      icon: FileEdit,
       color: '#10b981'
     }
   ];
@@ -374,7 +376,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
   const metrics = [
     { label: 'Resume ATS Quality',    value: atsResult.isEmpty ? 0 : atsResult.score, color: '#6366f1', icon: FileText },
     { label: 'Cover Letter Readiness', value: atsResult.isEmpty ? 0 : 90,              color: '#10b981', icon: Send },
-    { label: 'Interview Practice',     value: atsResult.isEmpty ? 0 : 65,              color: '#f59e0b', icon: MessageSquare },
+    { label: 'AI Email Readiness',     value: atsResult.isEmpty ? 0 : 85,              color: '#f59e0b', icon: Mail },
   ];
 
   return (

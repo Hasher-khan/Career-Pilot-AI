@@ -18,7 +18,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
     'resume-builder': 'ATS Resume Analyzer & Builder',
     'cover-letter':   'AI Cover Letter Generator',
     'email-generator':'AI Email Generator',
-    'career-advisor': 'Career Advisor & Skills Roadmap',
+    'ai-cv-maker':    'AI CV Maker',
     'settings':       'Profile & Settings'
   };
 
