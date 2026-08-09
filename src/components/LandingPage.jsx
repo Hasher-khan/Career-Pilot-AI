@@ -34,134 +34,197 @@ function AnimatedCounter({ target, suffix = '', prefix = '' }) {
 }
 
 // ── 3D Web Globe ─────────────────────────────────────────────────────────────
-function HeroWeb3D() {
-  const canvasRef = useRef(null);
-  const animRef = useRef(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    const W = canvas.width, H = canvas.height;
-    const cx = W / 2, cy = H / 2;
-    const R = Math.min(W, H) * 0.37;
-
-    const nodes = Array.from({ length: 100 }, (_, i) => {
-      const phi = Math.acos(-1 + (2 * i) / 100);
-      const theta = Math.sqrt(100 * Math.PI) * phi;
-      return { phi, theta };
-    });
-
-    let rotX = 0.28, rotY = 0;
-
-    const proj = (x, y, z) => {
-      const cY = Math.cos(rotY), sY = Math.sin(rotY);
-      const cX = Math.cos(rotX), sX = Math.sin(rotX);
-      const x1 = x * cY - z * sY, z1 = x * sY + z * cY;
-      const y2 = y * cX - z1 * sX, z2 = y * sX + z1 * cX;
-      const fov = 640, s = fov / (fov + z2 + R);
-      return { sx: cx + x1 * s, sy: cy + y2 * s, z: z2, scale: s };
-    };
-
-    const draw = () => {
-      ctx.clearRect(0, 0, W, H);
-      const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.5);
-      bg.addColorStop(0, 'rgba(99,102,241,0.10)');
-      bg.addColorStop(0.6, 'rgba(139,92,246,0.05)');
-      bg.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, W, H);
-
-      const pts = nodes.map(({ phi, theta }) => {
-        const x = R * Math.sin(phi) * Math.cos(theta);
-        const y = R * Math.cos(phi);
-        const z = R * Math.sin(phi) * Math.sin(theta);
-        return proj(x, y, z);
-      });
-
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const a = pts[i], b = pts[j];
-          const dx = a.sx - b.sx, dy = a.sy - b.sy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < R * 0.54) {
-            const dep = ((a.z + b.z) / 2 + R) / (2 * R);
-            const alpha = (1 - dist / (R * 0.54)) * (0.12 + 0.22 * dep);
-            ctx.strokeStyle = `hsla(${220 + dep * 35},85%,68%,${alpha})`;
-            ctx.lineWidth = 0.5 + dep * 0.45;
-            ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
-          }
-        }
-      }
-
-      for (const p of pts) {
-        const bright = (p.z + R) / (2 * R);
-        const r = 2.6 * p.scale * (0.4 + bright * 0.6);
-        const alpha = 0.2 + bright * 0.8;
-        const hue = 220 + bright * 40;
-        if (bright > 0.55) {
-          const g = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, r * 7);
-          g.addColorStop(0, `hsla(${hue},90%,70%,${alpha * 0.26})`);
-          g.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = g;
-          ctx.beginPath(); ctx.arc(p.sx, p.sy, r * 7, 0, Math.PI * 2); ctx.fill();
-        }
-        const dg = ctx.createRadialGradient(p.sx - r * 0.3, p.sy - r * 0.3, 0, p.sx, p.sy, r);
-        dg.addColorStop(0, `hsla(${hue + 20},95%,88%,${alpha})`);
-        dg.addColorStop(1, `hsla(${hue},80%,60%,${alpha * 0.55})`);
-        ctx.fillStyle = dg;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, Math.max(r, 0.8), 0, Math.PI * 2); ctx.fill();
-      }
-
-      rotY += 0.0013 + mouseRef.current.x * 0.00013;
-      rotX += 0.0006 + mouseRef.current.y * 0.00006;
-      animRef.current = requestAnimationFrame(draw);
-    };
-
-    draw();
-    const onMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current = { x: e.clientX - rect.left - cx, y: e.clientY - rect.top - cy };
-    };
-    const onLeave = () => { mouseRef.current = { x: 0, y: 0 }; };
-    canvas.addEventListener('mousemove', onMove);
-    canvas.addEventListener('mouseleave', onLeave);
-    return () => {
-      cancelAnimationFrame(animRef.current);
-      canvas.removeEventListener('mousemove', onMove);
-      canvas.removeEventListener('mouseleave', onLeave);
-    };
-  }, []);
-
+// ── Hero Mockup (SaaS Dashboard & Resume ATS Preview) ─────────────────────────
+function HeroMockup() {
   return (
-    <div style={{ position: 'relative', width: '100%', aspectRatio: '1/0.88', minHeight: '260px', maxHeight: '480px' }}>
-      <div style={{ position: 'absolute', width: '70%', height: '70%', borderRadius: '50%', border: '1px solid rgba(96,165,250,0.15)', top: '15%', left: '15%', animation: 'lp-spin 20s linear infinite', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', width: '53%', height: '53%', borderRadius: '50%', border: '1px dashed rgba(167,139,250,0.10)', top: '23.5%', left: '23.5%', animation: 'lp-spin 32s linear infinite reverse', pointerEvents: 'none' }} />
-      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', cursor: 'crosshair', borderRadius: '20px' }} />
-      {[
-        { text: '⚡ AI-Powered', style: { top: '7%', right: '3%', background: 'rgba(37,99,235,0.20)', border: '1px solid rgba(96,165,250,0.35)', color: '#93c5fd' }, delay: '0s' },
-        { text: '🌐 Global Network', style: { bottom: '14%', left: '2%', background: 'rgba(16,185,129,0.16)', border: '1px solid rgba(52,211,153,0.3)', color: '#6ee7b7' }, delay: '1.2s' },
-        { text: '🚀 Career OS', style: { bottom: '26%', right: '1%', background: 'rgba(139,92,246,0.17)', border: '1px solid rgba(167,139,250,0.32)', color: '#c4b5fd' }, delay: '0.6s' },
-        { text: '✨ 50K+ Hired', style: { top: '30%', left: '1%', background: 'rgba(245,158,11,0.14)', border: '1px solid rgba(251,191,36,0.28)', color: '#fcd34d' }, delay: '1.8s' },
-      ].map((b, i) => (
-        <div key={i} style={{
-          position: 'absolute', padding: '7px 15px', borderRadius: '999px',
-          fontSize: '0.72rem', fontWeight: 700, backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          animation: `lp-float 3.5s ease-in-out ${b.delay} infinite`,
-          letterSpacing: '0.5px', whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-          ...b.style
-        }}>{b.text}</div>
-      ))}
+    <div style={{ 
+      position: 'relative', 
+      width: '100%', 
+      aspectRatio: '1/0.85', 
+      minHeight: '340px', 
+      maxHeight: '480px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '10px'
+    }}>
+      {/* Glow Effects */}
+      <div style={{ 
+        position: 'absolute', 
+        width: '80%', 
+        height: '80%', 
+        borderRadius: '50%', 
+        background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(0,0,0,0) 70%)',
+        filter: 'blur(30px)',
+        zIndex: 0,
+        pointerEvents: 'none'
+      }} />
+
+      {/* Behind Card (Interview Coach Mockup) */}
+      <div style={{
+        position: 'absolute',
+        top: '5%',
+        left: '2%',
+        width: '68%',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--shadow-lg)',
+        padding: '16px',
+        zIndex: 1,
+        transform: 'rotate(-2deg) translateY(10px)',
+        transition: 'transform 0.3s ease',
+        pointerEvents: 'none'
+      }} className="glass-panel">
+        {/* Window controls */}
+        <div style={{ display: 'flex', gap: '5px', marginBottom: '12px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+          <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AI Live Coaching Session</span>
+        </div>
+        <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 6px' }}>"What is your approach to clinic workflow optimization?"</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
+          <Sparkles size={14} color="#818cf8" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: '0.76rem', color: '#c4b5fd', lineHeight: 1.4 }}>Analyzing answer... Detected: Structured layout, Good use of data points.</span>
+        </div>
+      </div>
+
+      {/* Main Front Card (ATS Analyzer & Builder Mockup) */}
+      <div style={{
+        position: 'relative',
+        width: '85%',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius-xl)',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+        padding: '20px',
+        zIndex: 2,
+        transform: 'rotate(1deg) translateY(-10px)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '14px'
+      }} className="glass-panel">
+        {/* Header Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', width: '100%', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '5px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+            </div>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>ats_optimizer.pdf</span>
+          </div>
+          <span style={{ fontSize: '0.74rem', background: 'rgba(16,185,129,0.12)', color: '#34d399', padding: '3px 8px', borderRadius: '999px', fontWeight: 700 }}>ATS Scanned</span>
+        </div>
+
+        {/* Content */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
+          {/* Resume Preview Representation */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderRight: '1px solid var(--border-color)', paddingRight: '16px' }}>
+            <div style={{ height: '14px', width: '70%', backgroundColor: 'var(--text-main)', borderRadius: '3px' }} />
+            <div style={{ height: '8px', width: '40%', backgroundColor: 'var(--text-muted)', borderRadius: '2px', marginBottom: '8px' }} />
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              <div style={{ height: '6px', width: '90%', backgroundColor: 'var(--text-subtle)', borderRadius: '2px' }} />
+              <div style={{ height: '6px', width: '85%', backgroundColor: 'var(--text-subtle)', borderRadius: '2px' }} />
+              <div style={{ height: '6px', width: '95%', backgroundColor: 'var(--text-subtle)', borderRadius: '2px' }} />
+            </div>
+            
+            <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(16,185,129,0.06)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #10b981' }}>
+              <p style={{ margin: 0, fontSize: '0.7rem', color: '#6ee7b7', fontWeight: 600 }}>✓ AI Enhancement Added</p>
+              <p style={{ margin: '2px 0 0', fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>"Spearheaded patient intake workflow re-design, reducing wait times by 22%."</p>
+            </div>
+          </div>
+
+          {/* Scoring panel */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            <div style={{ 
+              position: 'relative', 
+              width: '80px', 
+              height: '80px', 
+              borderRadius: '50%', 
+              background: 'conic-gradient(#6366f1 94%, var(--border-color) 0%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {/* Inner Circle for donut effect */}
+              <div style={{ 
+                position: 'absolute', 
+                width: '66px', 
+                height: '66px', 
+                borderRadius: '50%', 
+                backgroundColor: 'var(--bg-card)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>94%</span>
+                <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ATS Match</span>
+              </div>
+            </div>
+            
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Resume Strength:</span>
+                <span style={{ color: '#10b981', fontWeight: 700 }}>Excellent</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Keyword Match:</span>
+                <span style={{ color: '#6366f1', fontWeight: 700 }}>24 / 26</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Tag Pills */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', paddingTop: '4px' }}>
+          {['Healthcare IT', 'Clinical Operations', 'Compliance', 'Budget Management'].map((tag, i) => (
+            <span key={i} style={{ 
+              fontSize: '0.68rem', 
+              background: 'rgba(99,102,241,0.1)', 
+              border: '1px solid rgba(99,102,241,0.2)', 
+              color: '#818cf8', 
+              padding: '2px 8px', 
+              borderRadius: '999px',
+              fontWeight: 600
+            }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+      
+      {/* Floating Badges */}
+      <div style={{
+        position: 'absolute',
+        bottom: '8%',
+        right: '4%',
+        background: 'rgba(245,158,11,0.14)',
+        border: '1px solid rgba(251,191,36,0.28)',
+        color: '#fcd34d',
+        padding: '6px 12px',
+        borderRadius: '999px',
+        fontSize: '0.72rem',
+        fontWeight: 700,
+        boxShadow: 'var(--shadow-md)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 3,
+        animation: 'lp-float 3s ease-in-out infinite'
+      }}>
+        ✨ Optimized for Google ATS
+      </div>
+
       <style>{`
-        @keyframes lp-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-        @keyframes lp-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+        @keyframes lp-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
       `}</style>
     </div>
   );
@@ -273,7 +336,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         </div>
 
         {/* Globe */}
-        <div style={{ flex: '1 1 280px', minWidth: 0 }}><HeroWeb3D /></div>
+        <div style={{ flex: '1 1 280px', minWidth: 0 }}><HeroMockup /></div>
       </section>
 
       {/* ── Stats Bar ──────────────────────────────────────────────────────── */}
