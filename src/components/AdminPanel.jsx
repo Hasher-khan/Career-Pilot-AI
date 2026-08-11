@@ -6,7 +6,7 @@ import {
   Mail, MapPin, Briefcase, GraduationCap, Star, LogOut, RefreshCw,
   ChevronLeft, ChevronRight, Filter
 } from 'lucide-react';
-import { loadAllUsers } from '../utils/adminService';
+import { subscribeToAllUsers } from '../utils/adminService';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'hk786412345';
@@ -308,23 +308,32 @@ export default function AdminPanel() {
     setUsers([]);
   };
 
-  // ── Load users ──────────────────────────────────────────────────────────────
-  const fetchUsers = useCallback(async () => {
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // ── Load users (Real-time listener) ─────────────────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     setLoading(true);
     setError('');
-    try {
-      const data = await loadAllUsers();
-      setUsers(data);
-    } catch (err) {
-      setError('Failed to load users. ' + (err?.message || ''));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    if (isAuthenticated) fetchUsers();
-  }, [isAuthenticated, fetchUsers]);
+    const unsubscribe = subscribeToAllUsers(
+      (data) => {
+        setUsers(data);
+        setLoading(false);
+      },
+      (err) => {
+        setError('Failed to load users. ' + (err?.message || ''));
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [isAuthenticated, refreshTrigger]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   // ── Computed stats ──────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -554,7 +563,7 @@ export default function AdminPanel() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
-            onClick={fetchUsers}
+            onClick={handleRefresh}
             disabled={loading}
             className="admin-btn-secondary"
           >
