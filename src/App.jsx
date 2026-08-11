@@ -7,6 +7,7 @@ import ResumeAtsBuilder from './components/ResumeAtsBuilder';
 import CoverLetterGenerator from './components/CoverLetterGenerator';
 import EmailGenerator from './components/EmailGenerator';
 import AICVMaker from './components/AICVMaker';
+import AdminPanel from './components/AdminPanel';
 import ProfileSettings from './components/ProfileSettings';
 import AiAssistantModal from './components/AiAssistantModal';
 import SignInModal from './components/SignInModal';
@@ -303,6 +304,10 @@ export default function App() {
                 theme={theme}
                 toggleTheme={toggleTheme}
               />
+            )}
+
+            {activeTab === 'admin-panel' && (
+              <AdminPanel />
             )}
           </>
         )}
