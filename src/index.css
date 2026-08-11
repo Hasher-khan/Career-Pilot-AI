@@ -88,34 +88,56 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .glass-panel:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-md);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.35), 0 0 1px 1px rgba(99, 102, 241, 0.1) inset;
+  transform: translateY(-2px);
 }
 
 .glow-card {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.25);
 }
 
 /* ── Interactive card hover ── */
 .hover-lift {
-  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.25s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .hover-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4), 0 0 0 1px rgba(99, 102, 241, 0.15) inset;
 }
 
 .gradient-text {
-  color: var(--accent-primary);
+  background: linear-gradient(135deg, #818cf8, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill_color: transparent;
+  background-clip: text;
 }
 
 [data-theme='dark'] .gradient-text {
-  color: #60a5fa;
+  background: linear-gradient(135deg, #a5b4fc, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill_color: transparent;
+  background-clip: text;
 }
 
 /* Main Container */
