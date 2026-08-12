@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { LayoutDashboard, FileText, Send, FileEdit, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, Send, FileEdit, Settings, BookOpen } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardOverview from './components/DashboardOverview';
@@ -12,6 +12,7 @@ import ProfileSettings from './components/ProfileSettings';
 import AiAssistantModal from './components/AiAssistantModal';
 import SignInModal from './components/SignInModal';
 import LandingPage from './components/LandingPage';
+import StudyCompanion from './components/StudyCompanion';
 
 import { useAuth } from './context/AuthContext';
 import { loadUserProfile, saveUserProfile, initNewUserProfile } from './utils/firestoreService';
@@ -309,6 +310,10 @@ export default function App() {
             {activeTab === 'admin-panel' && (
               <AdminPanel />
             )}
+
+            {activeTab === 'study-companion' && (
+              <StudyCompanion userData={userData} />
+            )}
           </>
         )}
       </main>
@@ -326,7 +331,7 @@ export default function App() {
           { id: 'dashboard',      label: 'Home',    icon: LayoutDashboard },
           { id: 'resume-builder', label: 'Resume',  icon: FileText },
           { id: 'cover-letter',   label: 'Letter',  icon: Send },
-          { id: 'ai-cv-maker',    label: 'AI CV',   icon: FileEdit },
+          { id: 'study-companion',label: 'Study',   icon: BookOpen },
           { id: 'settings',       label: 'Profile', icon: Settings },
         ].map(item => {
           const Icon = item.icon;

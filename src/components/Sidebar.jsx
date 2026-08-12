@@ -12,20 +12,22 @@ import {
   ChevronUp,
   X,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  BookOpen
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUser, onSignOut, isOpen, onClose }) {
   const [profileExpanded, setProfileExpanded] = useState(false);
 
   const navItems = [
-    { id: 'dashboard',       label: 'Dashboard',             icon: LayoutDashboard },
-    { id: 'resume-builder',  label: 'ATS Resume & Builder',  icon: FileText,  badge: 'ATS' },
-    { id: 'cover-letter',    label: 'Cover Letter',          icon: Send },
-    { id: 'email-generator', label: 'AI Email Generator',    icon: Mail,      badge: 'New' },
-    { id: 'ai-cv-maker',     label: 'AI CV Maker',           icon: FileEdit,  badge: 'AI' },
-    { id: 'settings',        label: 'Profile & Settings',    icon: Settings },
-    { id: 'admin-panel',     label: 'Admin Panel',           icon: ShieldCheck, badge: 'Admin' },
+    { id: 'dashboard',        label: 'Dashboard',             icon: LayoutDashboard },
+    { id: 'resume-builder',   label: 'ATS Resume & Builder',  icon: FileText,    badge: 'ATS' },
+    { id: 'cover-letter',     label: 'Cover Letter',          icon: Send },
+    { id: 'email-generator',  label: 'AI Email Generator',    icon: Mail,        badge: 'New' },
+    { id: 'ai-cv-maker',      label: 'AI CV Maker',           icon: FileEdit,    badge: 'AI' },
+    { id: 'study-companion',  label: 'AI Study Companion',    icon: BookOpen,    badge: 'Student' },
+    { id: 'settings',         label: 'Profile & Settings',    icon: Settings },
+    { id: 'admin-panel',      label: 'Admin Panel',           icon: ShieldCheck, badge: 'Admin' },
   ];
 
   const displayName = currentUser?.displayName
@@ -36,10 +38,11 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
   const photoURL = currentUser?.photoURL || null;
 
   const badgeColors = {
-    ATS:   { bg: 'rgba(99,102,241,0.12)',  color: '#818cf8',  border: 'rgba(99,102,241,0.25)' },
-    New:   { bg: 'rgba(16,185,129,0.12)', color: '#34d399',  border: 'rgba(16,185,129,0.25)' },
-    AI:    { bg: 'rgba(236,72,153,0.12)', color: '#f472b6',  border: 'rgba(236,72,153,0.25)' },
-    Admin: { bg: 'rgba(239,68,68,0.12)',  color: '#f87171',  border: 'rgba(239,68,68,0.25)' },
+    ATS:     { bg: 'rgba(99,102,241,0.12)',  color: '#818cf8',  border: 'rgba(99,102,241,0.25)' },
+    New:     { bg: 'rgba(16,185,129,0.12)', color: '#34d399',  border: 'rgba(16,185,129,0.25)' },
+    AI:      { bg: 'rgba(236,72,153,0.12)', color: '#f472b6',  border: 'rgba(236,72,153,0.25)' },
+    Admin:   { bg: 'rgba(239,68,68,0.12)',  color: '#f87171',  border: 'rgba(239,68,68,0.25)' },
+    Student: { bg: 'rgba(124,58,237,0.12)', color: '#a78bfa',  border: 'rgba(124,58,237,0.25)' },
   };
 
   return (
