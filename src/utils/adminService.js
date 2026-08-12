@@ -3,9 +3,13 @@
  * ──────────────────────────────────────────────────────────
  * Firestore real-time synchronization for the Admin Panel.
  * Listens to all user profiles in the `users` collection.
+ * Also manages the `announcements` collection for broadcasts.
  */
 
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import {
+  collection, onSnapshot, query, orderBy,
+  addDoc, deleteDoc, doc, updateDoc, serverTimestamp, getDocs
+} from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase';
 
 /**
@@ -42,4 +46,57 @@ export function subscribeToAllUsers(onUpdate, onError) {
     if (onError) onError(err);
     return () => {};
   }
+}
+
+// ─── Announcements ────────────────────────────────────────────────────────────
+
+/**
+ * Subscribe to active announcements in real-time (newest first).
+ * Used by both the Admin Panel and the user Dashboard.
+ */
+export function subscribeToAnnouncements(onUpdate, onError) {
+  if (!isFirebaseConfigured) {
+    onUpdate([]);
+    return () => {};
+  }
+  try {
+    const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+    return onSnapshot(
+      q,
+      (snap) => onUpdate(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (err) => { console.error('Announcements sync failed:', err?.message); if (onError) onError(err); }
+    );
+  } catch (err) {
+    if (onError) onError(err);
+    return () => {};
+  }
+}
+
+/**
+ * Post a new announcement to Firestore.
+ * @param {{ title: string, message: string, type: string, pinned: boolean }} data
+ */
+export async function postAnnouncement(data) {
+  if (!isFirebaseConfigured) throw new Error('Firebase not configured.');
+  return addDoc(collection(db, 'announcements'), {
+    ...data,
+    createdAt: serverTimestamp(),
+    active: true,
+  });
+}
+
+/**
+ * Delete an announcement by ID.
+ */
+export async function deleteAnnouncement(id) {
+  if (!isFirebaseConfigured) throw new Error('Firebase not configured.');
+  return deleteDoc(doc(db, 'announcements', id));
+}
+
+/**
+ * Toggle active state of an announcement (pin/unpin or disable).
+ */
+export async function toggleAnnouncement(id, field, value) {
+  if (!isFirebaseConfigured) throw new Error('Firebase not configured.');
+  return updateDoc(doc(db, 'announcements', id), { [field]: value });
 }

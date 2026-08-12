@@ -17,9 +17,14 @@ import {
   Clock,
   Star,
   Mail,
-  FileEdit
+  FileEdit,
+  Bell,
+  Info,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { analyzeResumeATS } from '../utils/atsAnalyzer';
+import { subscribeToAnnouncements } from '../utils/adminService';
 
 /* ─── Animated Ring Component ─────────────────────────────────────────────── */
 function AnimatedRing({ score, color, trackColor, size = 120, stroke = 9 }) {
@@ -341,6 +346,43 @@ function StatChip({ icon: Icon, label, value, color }) {
 /* ─── Dashboard Overview ──────────────────────────────────────────────────── */
 export default function DashboardOverview({ userData, setActiveTab, openAiChat }) {
   const atsResult = analyzeResumeATS(userData);
+  const [announcements, setAnnouncements] = useState([]);
+  const [dismissedAnns, setDismissedAnns] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dismissed_announcements');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const unsub = subscribeToAnnouncements(
+      (data) => {
+        setAnnouncements(data);
+      },
+      (err) => console.error('Dashboard announcements sync error:', err)
+    );
+    return () => unsub();
+  }, []);
+
+  const handleDismissAnn = (id) => {
+    const updated = [...dismissedAnns, id];
+    setDismissedAnns(updated);
+    try {
+      localStorage.setItem('dismissed_announcements', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const activeAnnouncements = announcements
+    .filter(ann => ann.active && !dismissedAnns.includes(ann.id))
+    .sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return 0; // maintain original chronological order (newest first)
+    });
 
   const quickActions = [
     {
@@ -381,6 +423,88 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', animation: 'fadeIn 0.4s ease forwards' }}>
+
+      {/* ── Active Announcements Feed ── */}
+      {activeAnnouncements.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {activeAnnouncements.map(ann => {
+            const typeMap = {
+              info:    { color: '#60a5fa', bg: 'rgba(96,165,250,0.07)',  border: 'rgba(96,165,250,0.2)',  icon: Info },
+              success: { color: '#10b981', bg: 'rgba(16,185,129,0.07)', border: 'rgba(16,185,129,0.2)', icon: CheckCircle2 },
+              warning: { color: '#f59e0b', bg: 'rgba(245,158,11,0.07)', border: 'rgba(245,158,11,0.2)', icon: AlertTriangle },
+              urgent:  { color: '#ef4444', bg: 'rgba(239,68,68,0.07)',  border: 'rgba(239,68,68,0.2)',  icon: Zap },
+            };
+            const t = typeMap[ann.type] || typeMap.info;
+            const AnnIcon = t.icon;
+
+            return (
+              <div
+                key={ann.id}
+                style={{
+                  position: 'relative',
+                  padding: '16px 44px 16px 18px',
+                  borderRadius: '14px',
+                  background: t.bg,
+                  border: `1px solid ${t.border}`,
+                  backdropFilter: 'blur(8px)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  animation: 'fadeIn 0.3s ease forwards',
+                  boxShadow: ann.pinned ? '0 4px 16px rgba(99,102,241,0.08)' : 'none',
+                }}
+              >
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '8px',
+                  background: `${t.color}15`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, marginTop: '2px'
+                }}>
+                  <AnnIcon size={16} color={t.color} />
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      {ann.title}
+                    </span>
+                    {ann.pinned && (
+                      <span style={{
+                        fontSize: '0.62rem', fontWeight: 700, color: '#f59e0b',
+                        background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
+                        padding: '1px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px'
+                      }}>
+                        Pinned
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                    {ann.message}
+                  </p>
+                </div>
+
+                {/* Dismiss Button */}
+                <button
+                  onClick={() => handleDismissAnn(ann.id)}
+                  style={{
+                    position: 'absolute', top: '50%', right: '14px',
+                    transform: 'translateY(-50%)',
+                    width: '26px', height: '26px', borderRadius: '6px',
+                    border: '1px solid var(--border-color)', background: 'var(--bg-card)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'var(--text-subtle)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text-main)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-card)'; e.currentTarget.style.color = 'var(--text-subtle)'; }}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Hero Header ─────────────────────────────────────────────────── */}
       <div style={{

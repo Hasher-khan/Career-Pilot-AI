@@ -4,9 +4,16 @@ import {
   Users, UserCheck, TrendingUp, Award, ChevronDown, ChevronUp,
   Activity, BarChart3, ArrowUpRight, ArrowDownRight, Calendar,
   Mail, MapPin, Briefcase, GraduationCap, Star, LogOut, RefreshCw,
-  ChevronLeft, ChevronRight, Filter
+  ChevronLeft, ChevronRight, Filter, Megaphone, Bell, Pin, Trash2,
+  CheckCircle, AlertTriangle, Info, Zap, Send, ToggleLeft, ToggleRight
 } from 'lucide-react';
-import { subscribeToAllUsers } from '../utils/adminService';
+import {
+  subscribeToAllUsers,
+  subscribeToAnnouncements,
+  postAnnouncement,
+  deleteAnnouncement,
+  toggleAnnouncement
+} from '../utils/adminService';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'hk786412345';
@@ -282,6 +289,16 @@ export default function AdminPanel() {
   const [currentPage, setCurrentPage]   = useState(1);
   const ROWS_PER_PAGE = 10;
 
+  // ── Announcements state ─────────────────────────────────────────────────────
+  const [announcements, setAnnouncements]   = useState([]);
+  const [annTitle, setAnnTitle]             = useState('');
+  const [annMessage, setAnnMessage]         = useState('');
+  const [annType, setAnnType]               = useState('info');  // info | warning | success | urgent
+  const [annPinned, setAnnPinned]           = useState(false);
+  const [annSending, setAnnSending]         = useState(false);
+  const [annToast, setAnnToast]             = useState('');
+  const [adminTab, setAdminTab]             = useState('users'); // 'users' | 'announcements'
+
   // ── Password submission ─────────────────────────────────────────────────────
   const handlePasswordSubmit = useCallback((e) => {
     e.preventDefault();
@@ -333,6 +350,44 @@ export default function AdminPanel() {
 
   const handleRefresh = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);
+  }, []);
+
+  // ── Load announcements (Real-time) ───────────────────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const unsub = subscribeToAnnouncements(
+      (data) => setAnnouncements(data),
+      (err) => console.error('Announcements error:', err)
+    );
+    return () => unsub();
+  }, [isAuthenticated]);
+
+  // ── Post announcement ────────────────────────────────────────────────────────
+  const handlePostAnnouncement = useCallback(async () => {
+    if (!annTitle.trim() || !annMessage.trim()) {
+      setAnnToast('Please fill in both title and message.');
+      setTimeout(() => setAnnToast(''), 3000);
+      return;
+    }
+    setAnnSending(true);
+    try {
+      await postAnnouncement({ title: annTitle.trim(), message: annMessage.trim(), type: annType, pinned: annPinned });
+      setAnnTitle(''); setAnnMessage(''); setAnnPinned(false); setAnnType('info');
+      setAnnToast('✅ Announcement broadcast to all users!');
+    } catch (e) {
+      setAnnToast('❌ Failed to send: ' + e.message);
+    } finally {
+      setAnnSending(false);
+      setTimeout(() => setAnnToast(''), 4000);
+    }
+  }, [annTitle, annMessage, annType, annPinned]);
+
+  const handleDeleteAnnouncement = useCallback(async (id) => {
+    try { await deleteAnnouncement(id); } catch (e) { console.error(e); }
+  }, []);
+
+  const handleToggleAnnouncement = useCallback(async (id, field, current) => {
+    try { await toggleAnnouncement(id, field, !current); } catch (e) { console.error(e); }
   }, []);
 
   // ── Computed stats ──────────────────────────────────────────────────────────
@@ -577,6 +632,42 @@ export default function AdminPanel() {
         </div>
       </div>
 
+      {/* ── Admin Tab Navigation ─────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex', gap: '4px', padding: '4px',
+        background: 'var(--bg-card)', borderRadius: '14px',
+        border: '1px solid var(--border-color)',
+        marginBottom: '24px', width: 'fit-content'
+      }}>
+        {[
+          { id: 'users', label: 'Users & Analytics', icon: Users },
+          { id: 'announcements', label: 'Broadcast Announcements', icon: Megaphone },
+        ].map(tab => {
+          const Icon = tab.icon;
+          const active = adminTab === tab.id;
+          return (
+            <button key={tab.id} onClick={() => setAdminTab(tab.id)} style={{
+              display: 'flex', alignItems: 'center', gap: '7px',
+              padding: '9px 18px', borderRadius: '10px', border: 'none',
+              background: active ? 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(37,99,235,0.1))' : 'transparent',
+              color: active ? '#818cf8' : 'var(--text-muted)',
+              fontSize: '0.84rem', fontWeight: active ? 700 : 400,
+              cursor: 'pointer', transition: 'all 0.2s ease',
+              borderBottom: active ? '2px solid #818cf8' : '2px solid transparent'
+            }}>
+              <Icon size={15} /> {tab.label}
+              {tab.id === 'announcements' && announcements.filter(a => a.active).length > 0 && (
+                <span style={{
+                  fontSize: '0.65rem', fontWeight: 800,
+                  background: '#6366f1', color: '#fff',
+                  padding: '1px 6px', borderRadius: '10px', minWidth: '18px', textAlign: 'center'
+                }}>{announcements.filter(a => a.active).length}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {/* ── Error Banner ────────────────────────────────────────────────────── */}
       {error && (
         <div style={{
@@ -588,6 +679,280 @@ export default function AdminPanel() {
           <Shield size={16} /> {error}
         </div>
       )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+           ANNOUNCEMENTS TAB
+         ══════════════════════════════════════════════════════════════════════ */}
+      {adminTab === 'announcements' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          {/* Toast */}
+          {annToast && (
+            <div style={{
+              padding: '12px 18px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600,
+              background: annToast.startsWith('✅') ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+              border: `1px solid ${annToast.startsWith('✅') ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+              color: annToast.startsWith('✅') ? '#10b981' : '#f87171',
+              animation: 'fadeIn 0.3s ease'
+            }}>{annToast}</div>
+          )}
+
+          {/* ── Compose Panel ── */}
+          <div className="glass-panel" style={{ padding: '24px 28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '10px',
+                background: 'linear-gradient(135deg, #6366f1, #2563eb)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 3px 12px rgba(99,102,241,0.35)'
+              }}>
+                <Megaphone size={18} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>Compose Announcement</h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Broadcast a message to all users on their dashboard</p>
+              </div>
+            </div>
+
+            {/* Type selector */}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Message Type</label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {[
+                  { id: 'info',    label: 'Info',    icon: Info,          color: '#60a5fa', bg: 'rgba(96,165,250,0.1)',  border: 'rgba(96,165,250,0.25)' },
+                  { id: 'success', label: 'Success', icon: CheckCircle,   color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },
+                  { id: 'warning', label: 'Warning', icon: AlertTriangle, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
+                  { id: 'urgent',  label: 'Urgent',  icon: Zap,           color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.25)'  },
+                ].map(t => {
+                  const Icon = t.icon;
+                  const active = annType === t.id;
+                  return (
+                    <button key={t.id} onClick={() => setAnnType(t.id)} style={{
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      padding: '7px 14px', borderRadius: '10px', border: `1px solid ${active ? t.border : 'var(--border-color)'}`,
+                      background: active ? t.bg : 'transparent',
+                      color: active ? t.color : 'var(--text-muted)',
+                      fontSize: '0.8rem', fontWeight: active ? 700 : 400,
+                      cursor: 'pointer', transition: 'all 0.15s ease'
+                    }}>
+                      <Icon size={13} /> {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Title */}
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Title</label>
+              <input
+                value={annTitle}
+                onChange={e => setAnnTitle(e.target.value)}
+                placeholder="e.g. New Feature Available!"
+                maxLength={80}
+                style={{
+                  width: '100%', padding: '11px 14px', borderRadius: '10px',
+                  background: 'var(--bg-input)', border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)', fontSize: '0.88rem', fontFamily: 'inherit',
+                  outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s'
+                }}
+                onFocus={e => { e.target.style.borderColor = '#6366f1'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
+              />
+            </div>
+
+            {/* Message */}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Message</label>
+              <textarea
+                value={annMessage}
+                onChange={e => setAnnMessage(e.target.value)}
+                placeholder="Write your announcement message here…"
+                rows={4}
+                maxLength={500}
+                style={{
+                  width: '100%', padding: '11px 14px', borderRadius: '10px',
+                  background: 'var(--bg-input)', border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)', fontSize: '0.88rem', fontFamily: 'inherit',
+                  outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color 0.2s', lineHeight: 1.6
+                }}
+                onFocus={e => { e.target.style.borderColor = '#6366f1'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
+              />
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-subtle)', textAlign: 'right', marginTop: '3px' }}>{annMessage.length}/500</div>
+            </div>
+
+            {/* Options row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <button
+                onClick={() => setAnnPinned(p => !p)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '7px',
+                  padding: '8px 14px', borderRadius: '10px',
+                  border: `1px solid ${annPinned ? 'rgba(245,158,11,0.35)' : 'var(--border-color)'}`,
+                  background: annPinned ? 'rgba(245,158,11,0.08)' : 'transparent',
+                  color: annPinned ? '#f59e0b' : 'var(--text-muted)',
+                  fontSize: '0.8rem', fontWeight: annPinned ? 700 : 400,
+                  cursor: 'pointer', transition: 'all 0.15s ease'
+                }}
+              >
+                <Pin size={13} /> {annPinned ? 'Pinned (top priority)' : 'Pin to top'}
+              </button>
+
+              <button
+                onClick={handlePostAnnouncement}
+                disabled={annSending || !annTitle.trim() || !annMessage.trim()}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '10px 22px', borderRadius: '10px', border: 'none',
+                  background: (!annTitle.trim() || !annMessage.trim()) ? 'rgba(99,102,241,0.3)' : 'linear-gradient(135deg, #6366f1, #2563eb)',
+                  color: '#fff', fontSize: '0.88rem', fontWeight: 700,
+                  cursor: (!annTitle.trim() || !annMessage.trim()) ? 'not-allowed' : 'pointer',
+                  boxShadow: (!annTitle.trim() || !annMessage.trim()) ? 'none' : '0 4px 14px rgba(99,102,241,0.35)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => { if (annTitle.trim() && annMessage.trim()) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(99,102,241,0.45)'; }}}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = (annTitle.trim() && annMessage.trim()) ? '0 4px 14px rgba(99,102,241,0.35)' : 'none'; }}
+              >
+                {annSending
+                  ? <><RefreshCw size={14} className="admin-spin" /> Sending…</>
+                  : <><Send size={14} /> Broadcast to All Users</>}
+              </button>
+            </div>
+          </div>
+
+          {/* ── Live Announcements Feed ── */}
+          <div className="glass-panel" style={{ padding: '20px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Bell size={16} color="#818cf8" />
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>Live Announcements</h3>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', background: 'rgba(99,102,241,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                  {announcements.length} total
+                </span>
+              </div>
+            </div>
+
+            {announcements.length === 0 ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Megaphone size={28} style={{ marginBottom: '10px', opacity: 0.3 }} />
+                <p style={{ fontSize: '0.875rem', margin: 0 }}>No announcements yet. Compose one above.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {announcements.map(ann => {
+                  const typeMap = {
+                    info:    { color: '#60a5fa', bg: 'rgba(96,165,250,0.07)',  border: 'rgba(96,165,250,0.2)',  icon: Info,          label: 'Info' },
+                    success: { color: '#10b981', bg: 'rgba(16,185,129,0.07)', border: 'rgba(16,185,129,0.2)', icon: CheckCircle,   label: 'Success' },
+                    warning: { color: '#f59e0b', bg: 'rgba(245,158,11,0.07)', border: 'rgba(245,158,11,0.2)', icon: AlertTriangle, label: 'Warning' },
+                    urgent:  { color: '#ef4444', bg: 'rgba(239,68,68,0.07)',  border: 'rgba(239,68,68,0.2)',  icon: Zap,           label: 'Urgent' },
+                  };
+                  const t = typeMap[ann.type] || typeMap.info;
+                  const TypeIcon = t.icon;
+                  let createdStr = '—';
+                  if (ann.createdAt?.toDate) createdStr = ann.createdAt.toDate().toLocaleString();
+                  else if (ann.createdAt?.seconds) createdStr = new Date(ann.createdAt.seconds * 1000).toLocaleString();
+
+                  return (
+                    <div key={ann.id} style={{
+                      padding: '16px 18px', borderRadius: '14px',
+                      background: ann.active ? t.bg : 'rgba(255,255,255,0.01)',
+                      border: `1px solid ${ann.active ? t.border : 'var(--border-color)'}`,
+                      opacity: ann.active ? 1 : 0.55,
+                      transition: 'all 0.2s ease'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
+                          {/* Type Icon */}
+                          <div style={{
+                            width: '32px', height: '32px', flexShrink: 0, borderRadius: '9px',
+                            background: `${t.color}18`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            marginTop: '1px'
+                          }}>
+                            <TypeIcon size={15} color={t.color} />
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>{ann.title}</span>
+                              {ann.pinned && (
+                                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', padding: '1px 7px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <Pin size={9} /> PINNED
+                                </span>
+                              )}
+                              <span style={{ fontSize: '0.62rem', fontWeight: 700, color: t.color, background: `${t.color}15`, border: `1px solid ${t.border}`, padding: '1px 7px', borderRadius: '4px', textTransform: 'uppercase' }}>
+                                {t.label}
+                              </span>
+                              {!ann.active && (
+                                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-subtle)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', padding: '1px 7px', borderRadius: '4px' }}>HIDDEN</span>
+                              )}
+                            </div>
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 6px', lineHeight: 1.5 }}>{ann.message}</p>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-subtle)' }}>Sent: {createdStr}</span>
+                          </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          {/* Toggle visible */}
+                          <button
+                            onClick={() => handleToggleAnnouncement(ann.id, 'active', ann.active)}
+                            title={ann.active ? 'Hide from users' : 'Show to users'}
+                            style={{
+                              width: '30px', height: '30px', borderRadius: '8px', border: '1px solid var(--border-color)',
+                              background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: ann.active ? '#10b981' : 'var(--text-subtle)', transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            {ann.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                          </button>
+                          {/* Toggle pin */}
+                          <button
+                            onClick={() => handleToggleAnnouncement(ann.id, 'pinned', ann.pinned)}
+                            title={ann.pinned ? 'Unpin' : 'Pin to top'}
+                            style={{
+                              width: '30px', height: '30px', borderRadius: '8px', border: '1px solid var(--border-color)',
+                              background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: ann.pinned ? '#f59e0b' : 'var(--text-subtle)', transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            <Pin size={13} />
+                          </button>
+                          {/* Delete */}
+                          <button
+                            onClick={() => handleDeleteAnnouncement(ann.id)}
+                            title="Delete announcement"
+                            style={{
+                              width: '30px', height: '30px', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)',
+                              background: 'rgba(239,68,68,0.05)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#f87171', transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.05)'; }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+           USERS & ANALYTICS TAB
+         ══════════════════════════════════════════════════════════════════════ */}
+      {adminTab === 'users' && (
+      <div>
 
       {/* ── Stats Cards ─────────────────────────────────────────────────────── */}
       <div className="admin-stats-grid">
@@ -857,7 +1222,8 @@ export default function AdminPanel() {
           </div>
         )}
       </div>
-
+      </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
          USER DETAIL MODAL (slide-over)
