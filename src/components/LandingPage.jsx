@@ -309,10 +309,9 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
           ))}
         </nav>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons — login disabled temporarily */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          {/* Sign In button temporarily hidden */}
-          <button onClick={openSignIn || onGetStarted} className="btn btn-primary" style={{ fontSize: '0.88rem', padding: '9px 18px' }}>Get Started</button>
+          <button disabled className="btn btn-primary" title="Login coming soon" style={{ fontSize: '0.88rem', padding: '9px 18px', opacity: 0.5, cursor: 'not-allowed' }}>Get Started</button>
         </div>
       </header>
 
@@ -335,10 +334,10 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '32px' }}>
-            <button onClick={onGetStarted} className="btn btn-primary" style={{ padding: '14px 28px', fontSize: '1rem', fontWeight: 800, gap: '10px', boxShadow: '0 8px 32px rgba(99,102,241,0.4)' }}>
+            <button disabled className="btn btn-primary" title="Login coming soon" style={{ padding: '14px 28px', fontSize: '1rem', fontWeight: 800, gap: '10px', boxShadow: '0 8px 32px rgba(99,102,241,0.4)', opacity: 0.5, cursor: 'not-allowed' }}>
               <Sparkles size={18} /> Get Started Free
             </button>
-            <button onClick={onGetStarted} className="btn btn-secondary" style={{ padding: '14px 22px', fontSize: '1rem', gap: '8px' }}>
+            <button disabled className="btn btn-secondary" title="Login coming soon" style={{ padding: '14px 22px', fontSize: '1rem', gap: '8px', opacity: 0.5, cursor: 'not-allowed' }}>
               Watch Demo <ArrowRight size={16} />
             </button>
           </div>
@@ -502,7 +501,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
                 </li>
               ))}
             </ul>
-            <button onClick={onGetStarted} className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '14px', fontWeight: 800, boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>Start Free →</button>
+            <button disabled className="btn btn-primary" title="Login temporarily disabled" style={{ width: '100%', marginTop: 'auto', padding: '14px', fontWeight: 800, opacity: 0.5, cursor: 'not-allowed' }}>🔒 Login Disabled</button>
           </div>
         </div>
       </section>
