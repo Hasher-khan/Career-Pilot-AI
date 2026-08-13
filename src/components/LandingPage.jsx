@@ -259,6 +259,27 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
   return (
     <div style={{ width: '100%', minHeight: '100vh', backgroundColor: 'var(--bg-app)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-primary)', overflowX: 'hidden' }}>
 
+      {/* ── Announcement Banner ── */}
+      <div style={{
+        background: 'linear-gradient(90deg, #6366f1, #ec4899)',
+        color: '#ffffff',
+        padding: '10px 20px',
+        textAlign: 'center',
+        fontSize: '0.86rem',
+        fontWeight: 700,
+        letterSpacing: '0.5px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+        position: 'relative',
+        zIndex: 101
+      }}>
+        <Sparkles size={16} style={{ animation: 'lp-pulse 1.5s infinite' }} />
+        <span>🎉 careerpilotai is now free bt Owner Hasher Khan</span>
+      </div>
+
       {/* ── Sticky Header ──────────────────────────────────────────────────── */}
       <header style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -468,8 +489,8 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899)' }} />
             <div>
               <p style={{ fontSize: '0.78rem', fontWeight: 700, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 8px' }}>Pro</p>
-              <div style={{ fontSize: 'clamp(2rem, 5vw, 2.6rem)', fontWeight: 900, lineHeight: 1 }}>$3 <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>/ month</span></div>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px' }}>For serious career growth</p>
+              <div style={{ fontSize: 'clamp(2rem, 5vw, 2.6rem)', fontWeight: 900, lineHeight: 1 }}>$0 <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>/ month</span></div>
+              <p style={{ fontSize: '0.82rem', color: '#10b981', marginTop: '6px', fontWeight: 700 }}>Temporarily Free Promo</p>
             </div>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '12px', listStyle: 'none', padding: 0, margin: 0, fontSize: '0.88rem' }}>
               {['Unlimited ATS Resume & Builder', 'Unlimited AI CV Maker & Exports', 'Cover Letter Generator', 'AI Email Generator', '24/7 CareerPilot Assistant', 'Priority support & updates'].map((item, i) => (
@@ -481,7 +502,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
                 </li>
               ))}
             </ul>
-            <button onClick={onGetStarted} className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '14px', fontWeight: 800, boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>Go Premium →</button>
+            <button onClick={onGetStarted} className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '14px', fontWeight: 800, boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>Start Free →</button>
           </div>
         </div>
       </section>
