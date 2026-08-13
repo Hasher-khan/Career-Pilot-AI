@@ -5,7 +5,8 @@ import {
   Activity, BarChart3, ArrowUpRight, ArrowDownRight, Calendar,
   Mail, MapPin, Briefcase, GraduationCap, Star, LogOut, RefreshCw,
   ChevronLeft, ChevronRight, Filter, Megaphone, Bell, Pin, Trash2,
-  CheckCircle, AlertTriangle, Info, Zap, Send, ToggleLeft, ToggleRight
+  CheckCircle, AlertTriangle, Info, Zap, Send, ToggleLeft, ToggleRight,
+  BookOpen, Brain, FileText, Hash, Clock
 } from 'lucide-react';
 import {
   subscribeToAllUsers,
@@ -297,7 +298,7 @@ export default function AdminPanel() {
   const [annPinned, setAnnPinned]           = useState(false);
   const [annSending, setAnnSending]         = useState(false);
   const [annToast, setAnnToast]             = useState('');
-  const [adminTab, setAdminTab]             = useState('users'); // 'users' | 'announcements'
+  const [adminTab, setAdminTab]             = useState('users'); // 'users' | 'announcements' | 'study-companion'
 
   // ── Password submission ─────────────────────────────────────────────────────
   const handlePasswordSubmit = useCallback((e) => {
@@ -637,11 +638,15 @@ export default function AdminPanel() {
         display: 'flex', gap: '4px', padding: '4px',
         background: 'var(--bg-card)', borderRadius: '14px',
         border: '1px solid var(--border-color)',
-        marginBottom: '24px', width: 'fit-content'
+        marginBottom: '24px',
+        overflowX: 'auto',
+        flexWrap: 'wrap',
+        WebkitOverflowScrolling: 'touch',
       }}>
         {[
           { id: 'users', label: 'Users & Analytics', icon: Users },
           { id: 'announcements', label: 'Broadcast Announcements', icon: Megaphone },
+          { id: 'study-companion', label: 'AI Study Companion', icon: BookOpen },
         ].map(tab => {
           const Icon = tab.icon;
           const active = adminTab === tab.id;
@@ -653,7 +658,8 @@ export default function AdminPanel() {
               color: active ? '#818cf8' : 'var(--text-muted)',
               fontSize: '0.84rem', fontWeight: active ? 700 : 400,
               cursor: 'pointer', transition: 'all 0.2s ease',
-              borderBottom: active ? '2px solid #818cf8' : '2px solid transparent'
+              borderBottom: active ? '2px solid #818cf8' : '2px solid transparent',
+              whiteSpace: 'nowrap',
             }}>
               <Icon size={15} /> {tab.label}
               {tab.id === 'announcements' && announcements.filter(a => a.active).length > 0 && (
@@ -667,6 +673,7 @@ export default function AdminPanel() {
           );
         })}
       </div>
+
 
       {/* ── Error Banner ────────────────────────────────────────────────────── */}
       {error && (
@@ -947,6 +954,172 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+           AI STUDY COMPANION TAB
+         ══════════════════════════════════════════════════════════════════════ */}
+      {adminTab === 'study-companion' && (() => {
+        const studyUsers = users.filter(u => (u.studyKitsGeneratedCount || 0) > 0);
+        const totalKits = users.reduce((sum, u) => sum + (u.studyKitsGeneratedCount || 0), 0);
+        const avgKits = studyUsers.length > 0 ? (totalKits / studyUsers.length).toFixed(1) : 0;
+        const topLearners = [...users]
+          .filter(u => u.studyKitsGeneratedCount > 0)
+          .sort((a, b) => (b.studyKitsGeneratedCount || 0) - (a.studyKitsGeneratedCount || 0))
+          .slice(0, 8);
+        const recentKits = [];
+        users.forEach(u => {
+          (u.studyKitsHistory || []).forEach(kit => {
+            recentKits.push({ ...kit, userName: u.name || u.email || 'Unknown', userEmail: u.email });
+          });
+        });
+        recentKits.sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
+        const recentTop = recentKits.slice(0, 12);
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+            {/* ── Stats cards ── */}
+            <div className="admin-stats-grid">
+              {[
+                { label: 'Total Study Kits Generated', value: totalKits, icon: BookOpen, color: '#7c3aed', bg: 'rgba(124,58,237,0.1)' },
+                { label: 'Active Learners', value: studyUsers.length, icon: Brain, color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+                { label: 'Total Users', value: users.length, icon: Users, color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+                { label: 'Avg Kits / Learner', value: parseFloat(avgKits), icon: TrendingUp, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+              ].map((s, i) => {
+                const Icon = s.icon;
+                return (
+                  <div key={i} className="admin-stat-card glass-panel" style={{ animationDelay: `${i * 0.08}s` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon size={20} color={s.color} />
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.03em', lineHeight: 1 }}>
+                      <AnimatedCounter value={s.value} />
+                    </p>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '6px 0 0', fontWeight: 500 }}>{s.label}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+
+              {/* ── Top Learners ── */}
+              <div className="glass-panel" style={{ padding: '20px 24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                  <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #7c3aed, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(124,58,237,0.3)' }}>
+                    <Award size={17} color="#fff" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>Top Learners</h3>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>Most study kits generated</p>
+                  </div>
+                </div>
+                {topLearners.length === 0 ? (
+                  <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <BookOpen size={28} style={{ marginBottom: '10px', opacity: 0.3 }} />
+                    <p style={{ fontSize: '0.85rem', margin: 0 }}>No study kits generated yet.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {topLearners.map((u, i) => {
+                      const initial = (u.name || u.email || '?').charAt(0).toUpperCase();
+                      const medals = ['🥇', '🥈', '🥉'];
+                      return (
+                        <div key={u.uid || i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '12px', background: i < 3 ? 'rgba(124,58,237,0.05)' : 'rgba(255,255,255,0.01)', border: `1px solid ${i < 3 ? 'rgba(124,58,237,0.15)' : 'var(--border-color)'}` }}>
+                          <span style={{ fontSize: '1rem', minWidth: '24px' }}>{medals[i] || `${i + 1}.`}</span>
+                          <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: `hsl(${(initial.charCodeAt(0) * 37) % 360}, 60%, 55%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>
+                            {initial}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.82rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name || 'Unnamed'}</p>
+                            <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email || '—'}</p>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 10px', borderRadius: '20px', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', flexShrink: 0 }}>
+                            <BookOpen size={11} color="#818cf8" />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#818cf8' }}>{u.studyKitsGeneratedCount}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Recent Generations ── */}
+              <div className="glass-panel" style={{ padding: '20px 24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                  <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #0ea5e9, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(14,165,233,0.3)' }}>
+                    <Clock size={17} color="#fff" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>Recent Generations</h3>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>Latest platform-wide activity</p>
+                  </div>
+                </div>
+                {recentTop.length === 0 ? (
+                  <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <Activity size={28} style={{ marginBottom: '10px', opacity: 0.3 }} />
+                    <p style={{ fontSize: '0.85rem', margin: 0 }}>No recent study kit activity.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', maxHeight: '380px', overflowY: 'auto' }}>
+                    {recentTop.map((kit, i) => {
+                      let timeStr = '—';
+                      try {
+                        const dt = new Date(kit.generatedAt);
+                        const diff = Math.floor((Date.now() - dt.getTime()) / 60000);
+                        if (diff < 60) timeStr = `${diff}m ago`;
+                        else if (diff < 1440) timeStr = `${Math.floor(diff / 60)}h ago`;
+                        else timeStr = `${Math.floor(diff / 1440)}d ago`;
+                      } catch (_) {}
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 12px', borderRadius: '11px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}>
+                          <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: kit.type === 'URL' ? 'rgba(14,165,233,0.1)' : 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {kit.type === 'URL' ? <Hash size={13} color="#60a5fa" /> : <FileText size={13} color="#a78bfa" />}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kit.topic}</p>
+                            <p style={{ margin: '1px 0 0', fontSize: '0.68rem', color: 'var(--text-muted)' }}>{kit.userName} · {kit.questionCount}Q · {(kit.charCount || 0).toLocaleString()} chars</p>
+                          </div>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-subtle)', whiteSpace: 'nowrap', flexShrink: 0, marginTop: '3px' }}>{timeStr}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── Adoption Banner ── */}
+            <div style={{ padding: '18px 22px', borderRadius: '14px', background: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(99,102,241,0.05))', border: '1px solid rgba(124,58,237,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <BookOpen size={22} color="#a78bfa" />
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>AI Study Companion Adoption</p>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    {users.length > 0 ? `${Math.round((studyUsers.length / users.length) * 100)}%` : '0%'} of users have used the Study Companion feature
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                {[
+                  { label: 'Users with Kits', value: studyUsers.length },
+                  { label: 'Total Kits', value: totalKits },
+                  { label: 'Avg per Learner', value: avgKits },
+                ].map((s, i) => (
+                  <div key={i} style={{ textAlign: 'center' }}>
+                    <p style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#a78bfa' }}>{s.value}</p>
+                    <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        );
+      })()}
 
       {/* ══════════════════════════════════════════════════════════════════════
            USERS & ANALYTICS TAB
@@ -1311,6 +1484,50 @@ export default function AdminPanel() {
                 <CompletionRadar user={selectedUser} />
               </div>
             </div>
+
+            {/* Study Companion Stats */}
+            {(selectedUser.studyKitsGeneratedCount > 0 || (selectedUser.studyKitsHistory || []).length > 0) && (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <BookOpen size={14} color="#a78bfa" />
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>AI Study Companion</h4>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.15)', textAlign: 'center' }}>
+                    <p style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: '#a78bfa' }}>{selectedUser.studyKitsGeneratedCount || 0}</p>
+                    <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '3px 0 0', fontWeight: 600 }}>Kits Generated</p>
+                  </div>
+                  <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(14,165,233,0.06)', border: '1px solid rgba(14,165,233,0.15)', textAlign: 'center' }}>
+                    <p style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: '#60a5fa' }}>{(selectedUser.studyKitsHistory || []).reduce((sum, k) => sum + (k.questionCount || 0), 0)}</p>
+                    <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '3px 0 0', fontWeight: 600 }}>Questions Practiced</p>
+                  </div>
+                </div>
+                {(selectedUser.studyKitsHistory || []).length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>Recent Study Sessions</p>
+                    {(selectedUser.studyKitsHistory || []).slice(0, 4).map((kit, i) => {
+                      let timeStr = '—';
+                      try {
+                        const dt = new Date(kit.generatedAt);
+                        timeStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                      } catch (_) {}
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', borderRadius: '9px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}>
+                          <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: kit.type === 'URL' ? 'rgba(14,165,233,0.12)' : 'rgba(124,58,237,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {kit.type === 'URL' ? <Hash size={11} color="#60a5fa" /> : <FileText size={11} color="#a78bfa" />}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kit.topic || 'General'}</p>
+                            <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-muted)' }}>{kit.questionCount || 0}Q · {(kit.charCount || 0).toLocaleString()} chars</p>
+                          </div>
+                          <span style={{ fontSize: '0.62rem', color: 'var(--text-subtle)', flexShrink: 0 }}>{timeStr}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Skills */}
             {selectedUser.skills?.length > 0 && (

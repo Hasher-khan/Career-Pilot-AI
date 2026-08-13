@@ -19,7 +19,9 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
     'cover-letter':   'AI Cover Letter Generator',
     'email-generator':'AI Email Generator',
     'ai-cv-maker':    'AI CV Maker',
-    'settings':       'Profile & Settings'
+    'settings':       'Profile & Settings',
+    'study-companion':'AI Study Companion',
+    'ai-quizzes':      'AI Practice Quizzes'
   };
 
   // Close dropdown on click outside

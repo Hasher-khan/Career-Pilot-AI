@@ -456,11 +456,12 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
               >
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '8px',
-                  background: `${t.color}15`,
+                  background: 'linear-gradient(135deg, #6366f1, #2563eb)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 3px 8px rgba(99,102,241,0.25)',
                   flexShrink: 0, marginTop: '2px'
                 }}>
-                  <AnnIcon size={16} color={t.color} />
+                  <Sparkles size={15} color="#ffffff" strokeWidth={2.5} />
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>

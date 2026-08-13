@@ -645,6 +645,32 @@ body {
   align-items: start;
 }
 
+.study-companion-container {
+  padding: 24px 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.study-companion-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 1025px) {
+  .study-companion-grid.has-kit {
+    grid-template-columns: 1fr 1.4fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .study-companion-container {
+    padding: 16px 12px;
+  }
+}
+
 @media (max-width: 1024px) {
   .resume-builder-grid, .cover-letter-grid, .email-generator-grid {
     grid-template-columns: 1fr !important;

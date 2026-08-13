@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { LayoutDashboard, FileText, Send, FileEdit, Settings, BookOpen } from 'lucide-react';
+import { LayoutDashboard, FileText, Send, FileEdit, Settings, BookOpen, Brain } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardOverview from './components/DashboardOverview';
@@ -13,6 +13,7 @@ import AiAssistantModal from './components/AiAssistantModal';
 import SignInModal from './components/SignInModal';
 import LandingPage from './components/LandingPage';
 import StudyCompanion from './components/StudyCompanion';
+import QuizCompanion from './components/QuizCompanion';
 
 import { useAuth } from './context/AuthContext';
 import { loadUserProfile, saveUserProfile, initNewUserProfile } from './utils/firestoreService';
@@ -312,7 +313,11 @@ export default function App() {
             )}
 
             {activeTab === 'study-companion' && (
-              <StudyCompanion userData={userData} />
+              <StudyCompanion userData={userData} setUserData={handleSetUserData} />
+            )}
+
+            {activeTab === 'ai-quizzes' && (
+              <QuizCompanion userData={userData} setUserData={handleSetUserData} />
             )}
           </>
         )}
@@ -332,6 +337,7 @@ export default function App() {
           { id: 'resume-builder', label: 'Resume',  icon: FileText },
           { id: 'cover-letter',   label: 'Letter',  icon: Send },
           { id: 'study-companion',label: 'Study',   icon: BookOpen },
+          { id: 'ai-quizzes',     label: 'Quizzes', icon: Brain },
           { id: 'settings',       label: 'Profile', icon: Settings },
         ].map(item => {
           const Icon = item.icon;

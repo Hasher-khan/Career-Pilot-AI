@@ -1,11 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
-  BookOpen, Sparkles, Copy, Check, RefreshCw, ChevronRight,
-  ChevronLeft, FileText, Link2, Tag, Zap, Award, Brain,
-  CheckCircle, XCircle, RotateCcw, Download, AlignLeft,
-  AlertCircle, Loader, ChevronDown, ChevronUp, Globe, Hash
+  Sparkles, Link2, Zap, Award, Brain,
+  CheckCircle, XCircle, RotateCcw, AlignLeft,
+  AlertCircle, Loader, Globe, Hash, ChevronRight
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
 
 // ─── Gemini API Call ─────────────────────────────────────────────────────────
 async function callGeminiAI(prompt) {
@@ -36,27 +34,16 @@ async function callGeminiAI(prompt) {
 }
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
-function buildStudyPrompt(content, topic) {
-  return `### SYSTEM PROMPT: AI STUDY COMPANION GENERATOR
+function buildQuizPrompt(content, topic) {
+  return `### SYSTEM PROMPT: AI INTERACTIVE QUIZ GENERATOR
 
-You are an expert educational AI assistant. Your task is to process the provided video transcript or educational content and generate a complete Study Kit containing two main components: AI Notes & Summary and Interactive Quizzes.
+You are an expert educational AI assistant. Your task is to process the provided video transcript or educational content and generate a 10-question interactive quiz based directly on the content.
 ${topic ? `\nThe topic/subject context is: ${topic}\n` : ''}
 ---
 
 ### REQUIRED OUTPUT FORMAT
 
-Return the output formatted strictly according to the following structures:
-
-#### SECTION 1: AI NOTES & SUMMARY
-
-1. **Executive Summary**: Provide a high-level overview of the video's main concepts and key takeaways in 3–5 sentences.
-2. **Key Terms & Vocabulary**: Extract crucial keywords and define them clearly based on the context.
-3. **Structured Notes**:
-   - Organize content into structured headings and subheadings.
-   - Use concise, bulleted points to break down concepts.
-   - Highlight essential **Keywords** in bold.
-
----
+Return the output formatted strictly according to the following structure:
 
 #### SECTION 2: INTERACTIVE QUIZZES
 
@@ -79,7 +66,7 @@ For True/False questions, use only A) True and B) False as options.
 ### INSTRUCTIONS & RULES:
 - Keep the language accurate, engaging, and clear for learners.
 - Ensure all quiz questions are directly answerable using information present in the transcript/content.
-- Maintain formatting hierarchy so it can be parsed cleanly by frontend markdown components.
+- Return ONLY the interactive quiz questions in the format specified above. Do not include summary notes.
 
 ---
 
@@ -89,36 +76,6 @@ ${content}`;
 }
 
 // ─── Demo fallback data ────────────────────────────────────────────────────────
-const DEMO_NOTES = `#### SECTION 1: AI NOTES & SUMMARY
-
-1. **Executive Summary**: This content covers fundamental concepts in computer science and software engineering. The material explores key programming paradigms, data structures, and algorithmic thinking. Students will gain a solid understanding of how modern software systems are designed and optimized. The content bridges theoretical foundations with practical application patterns. These concepts form the backbone of professional software development.
-
-2. **Key Terms & Vocabulary**:
-- **Algorithm**: A step-by-step procedure for solving a problem or accomplishing a task efficiently.
-- **Data Structure**: A way of organizing and storing data to enable efficient access and modification.
-- **Abstraction**: The process of hiding complex implementation details while exposing only essential features.
-- **Recursion**: A programming technique where a function calls itself to solve smaller instances of a problem.
-- **Complexity**: A measure of how resource requirements (time/space) grow as input size increases.
-
-3. **Structured Notes**:
-
-### Core Programming Concepts
-#### Algorithmic Thinking
-- Break problems into smaller, manageable sub-problems
-- Identify patterns and reusable solutions
-- Analyze **time complexity** and **space complexity**
-
-#### Data Structures
-- **Arrays**: Fixed-size, indexed collections for fast random access
-- **Linked Lists**: Dynamic size, efficient insertion/deletion
-- **Hash Tables**: O(1) average lookup via key hashing
-- **Trees**: Hierarchical structures ideal for sorted data
-
-### Software Design Principles
-- **DRY** (Don't Repeat Yourself): Reduce code duplication
-- **SOLID**: Five principles for maintainable object-oriented design
-- **Separation of Concerns**: Each module handles one responsibility`;
-
 const DEMO_QUIZ = [
   { q: 'What is the primary purpose of an algorithm in computer science?', opts: ['A) To store data efficiently', 'B) To provide a step-by-step procedure for solving a problem', 'C) To define the user interface', 'D) To manage memory allocation'], correct: 'B', explanation: 'An algorithm is a defined sequence of steps designed to solve a specific problem or accomplish a task, forming the foundation of all computational solutions.' },
   { q: 'Which data structure provides O(1) average time complexity for lookup operations?', opts: ['A) Linked List', 'B) Binary Tree', 'C) Hash Table', 'D) Stack'], correct: 'C', explanation: 'Hash tables use a hashing function to map keys to indices, enabling constant-time average lookup regardless of dataset size.' },
@@ -132,210 +89,67 @@ const DEMO_QUIZ = [
   { q: 'True or False: The "Separation of Concerns" principle means each module should handle multiple responsibilities.', opts: ['A) True', 'B) False'], correct: 'B', explanation: 'Separation of Concerns means each module/component should handle exactly one concern or responsibility, improving modularity and maintainability.' },
 ];
 
-// ─── Parse AI response into notes + quiz ─────────────────────────────────────
+// ─── Parse AI response into quiz ─────────────────────────────────────────────
 function parseAIResponse(text) {
-  if (!text) return { notes: null, quiz: [] };
-
-  const splitIdx = text.indexOf('#### SECTION 2:');
-  const notesRaw = splitIdx > -1 ? text.substring(0, splitIdx).trim() : text.trim();
-  const quizRaw  = splitIdx > -1 ? text.substring(splitIdx).trim() : '';
+  if (!text) return [];
 
   // Parse quiz questions
   const quiz = [];
-  if (quizRaw) {
-    const questionBlocks = quizRaw.split(/\*\*Question \d+\/10\*\*:/g).slice(1);
-    questionBlocks.forEach((block, idx) => {
-      const lines = block.trim().split('\n').map(l => l.trim()).filter(Boolean);
-      const q = lines[0]?.replace(/^\*+/, '').trim() || `Question ${idx + 1}`;
-      const opts = [];
-      let correct = '';
-      let explanation = '';
-
-      lines.forEach(line => {
-        const optMatch = line.match(/^\*?\s*([A-D])\)\s+(.+)/);
-        if (optMatch) opts.push(`${optMatch[1]}) ${optMatch[2]}`);
-
-        const corrMatch = line.match(/\*\*Correct Answer\*\*:?\s*([A-D])/i);
-        if (corrMatch) correct = corrMatch[1].toUpperCase();
-
-        const expMatch = line.match(/\*\*Explanation\*\*:?\s*(.+)/i);
-        if (expMatch) explanation = expMatch[1];
+  const questionBlocks = text.split(/\*\*Question \d+\/10\*\*:/g).slice(1);
+  
+  if (questionBlocks.length === 0) {
+    // Try simpler fallback split if exact match fails
+    const fallbackBlocks = text.split(/Question \d+:/g).slice(1);
+    if (fallbackBlocks.length > 0) {
+      fallbackBlocks.forEach((block, idx) => {
+        parseBlock(block, idx);
       });
-
-      if (q && opts.length >= 2) {
-        quiz.push({ q, opts, correct, explanation });
-      }
+    }
+  } else {
+    questionBlocks.forEach((block, idx) => {
+      parseBlock(block, idx);
     });
   }
 
-  return { notes: notesRaw, quiz };
-}
+  function parseBlock(block, idx) {
+    const lines = block.trim().split('\n').map(l => l.trim()).filter(Boolean);
+    const q = lines[0]?.replace(/^\*+/, '').trim() || `Question ${idx + 1}`;
+    const opts = [];
+    let correct = '';
+    let explanation = '';
 
-// ─── Simple Markdown Renderer ─────────────────────────────────────────────────
-function MarkdownRenderer({ text }) {
-  if (!text) return null;
+    lines.forEach(line => {
+      const optMatch = line.match(/^\*?\s*([A-D])\)\s+(.+)/);
+      if (optMatch) opts.push(`${optMatch[1]}) ${optMatch[2]}`);
 
-  const lines = text.split('\n');
-  const elements = [];
-  let keyTermBuffer = [];
-  let inKeyTerms = false;
-  let listBuffer = [];
-  let inList = false;
+      const corrMatch = line.match(/\*\*Correct Answer\*\*:?\s*([A-D])/i);
+      if (corrMatch) correct = corrMatch[1].toUpperCase();
 
-  const flushList = (key) => {
-    if (listBuffer.length) {
-      elements.push(
-        <ul key={`ul-${key}`} style={{ margin: '8px 0 12px 0', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          {listBuffer.map((item, i) => (
-            <li key={i} style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}
-              dangerouslySetInnerHTML={{ __html: item }} />
-          ))}
-        </ul>
-      );
-      listBuffer = [];
-      inList = false;
+      const expMatch = line.match(/\*\*Explanation\*\*:?\s*(.+)/i);
+      if (expMatch) explanation = expMatch[1];
+    });
+
+    if (q && opts.length >= 2) {
+      quiz.push({ q, opts, correct, explanation });
     }
-  };
-
-  lines.forEach((line, i) => {
-    const bold = (t) => t.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-main);font-weight:600">$1</strong>');
-
-    // Section headers — skip, already handled
-    if (line.startsWith('#### SECTION 1:')) return;
-
-    if (line.match(/^###\s+/)) {
-      flushList(i);
-      inKeyTerms = false;
-      elements.push(
-        <h3 key={i} style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '20px 0 8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px' }}>
-          {line.replace(/^###\s+/, '')}
-        </h3>
-      );
-      return;
-    }
-
-    if (line.match(/^####\s+/)) {
-      flushList(i);
-      inKeyTerms = false;
-      elements.push(
-        <h4 key={i} style={{ fontSize: '0.9rem', fontWeight: 600, color: '#818cf8', margin: '14px 0 6px' }}>
-          {line.replace(/^####\s+/, '')}
-        </h4>
-      );
-      return;
-    }
-
-    // Numbered intro sections
-    if (line.match(/^\d+\.\s+\*\*Executive Summary\*\*/)) {
-      flushList(i);
-      elements.push(
-        <div key={i} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', margin: '12px 0 4px' }}>
-          📋 Executive Summary
-        </div>
-      );
-      inKeyTerms = false;
-      return;
-    }
-
-    if (line.match(/^\d+\.\s+\*\*Key Terms/)) {
-      flushList(i);
-      elements.push(
-        <div key={i} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', margin: '16px 0 8px' }}>
-          🔑 Key Terms & Vocabulary
-        </div>
-      );
-      inKeyTerms = true;
-      return;
-    }
-
-    if (line.match(/^\d+\.\s+\*\*Structured Notes/)) {
-      flushList(i);
-      inKeyTerms = false;
-      elements.push(
-        <div key={i} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', margin: '16px 0 8px' }}>
-          📖 Structured Notes
-        </div>
-      );
-      return;
-    }
-
-    // Key term pill lines: "- **Term**: Definition"
-    if (inKeyTerms && line.match(/^-\s+\*\*/)) {
-      const match = line.match(/^-\s+\*\*(.+?)\*\*:\s*(.+)/);
-      if (match) {
-        keyTermBuffer.push({ term: match[1], def: match[2] });
-        return;
-      }
-    }
-
-    // Flush key terms when we move past them
-    if (!line.match(/^-\s+\*\*/) && inKeyTerms && keyTermBuffer.length) {
-      elements.push(
-        <div key={`kt-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 16px' }}>
-          {keyTermBuffer.map((kt, ki) => (
-            <div key={ki} style={{
-              display: 'flex', gap: '10px', alignItems: 'flex-start',
-              padding: '10px 14px', borderRadius: '10px',
-              background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)'
-            }}>
-              <span style={{
-                fontSize: '0.75rem', fontWeight: 700, color: '#818cf8',
-                background: 'rgba(99,102,241,0.15)', padding: '2px 8px',
-                borderRadius: '6px', whiteSpace: 'nowrap', marginTop: '1px', flexShrink: 0
-              }}>{kt.term}</span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{kt.def}</span>
-            </div>
-          ))}
-        </div>
-      );
-      keyTermBuffer = [];
-      inKeyTerms = false;
-    }
-
-    // Bullet points
-    if (line.match(/^[-*]\s+/)) {
-      listBuffer.push(bold(line.replace(/^[-*]\s+/, '')));
-      inList = true;
-      return;
-    }
-
-    // Regular paragraph
-    if (line.trim()) {
-      flushList(i);
-      elements.push(
-        <p key={i} style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.7, margin: '4px 0 8px' }}
-          dangerouslySetInnerHTML={{ __html: bold(line) }} />
-      );
-    }
-  });
-
-  // Flush remaining key terms
-  if (keyTermBuffer.length) {
-    elements.push(
-      <div key="kt-final" style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 16px' }}>
-        {keyTermBuffer.map((kt, ki) => (
-          <div key={ki} style={{
-            display: 'flex', gap: '10px', alignItems: 'flex-start',
-            padding: '10px 14px', borderRadius: '10px',
-            background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)'
-          }}>
-            <span style={{
-              fontSize: '0.75rem', fontWeight: 700, color: '#818cf8',
-              background: 'rgba(99,102,241,0.15)', padding: '2px 8px',
-              borderRadius: '6px', whiteSpace: 'nowrap', marginTop: '1px', flexShrink: 0
-            }}>{kt.term}</span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{kt.def}</span>
-          </div>
-        ))}
-      </div>
-    );
   }
 
-  flushList('final');
-  return <div>{elements}</div>;
+  return quiz;
 }
 
-// ─── Quiz Component ───────────────────────────────────────────────────────────
+// ─── Skeleton Loader ──────────────────────────────────────────────────────────
+function Skeleton({ height = 16, width = '100%', radius = 8, mb = 8 }) {
+  return (
+    <div style={{
+      height, width, borderRadius: radius, marginBottom: mb,
+      background: 'linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card) 75%)',
+      backgroundSize: '200% 100%',
+      animation: 'shimmer 1.4s infinite linear'
+    }} />
+  );
+}
+
+// ─── Interactive Quiz Component ──────────────────────────────────────────────
 function InteractiveQuiz({ questions }) {
   const [currentQ, setCurrentQ]       = useState(0);
   const [selectedOpt, setSelectedOpt] = useState(null);
@@ -543,8 +357,6 @@ function InteractiveQuiz({ questions }) {
             cursor: 'pointer', boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
             transition: 'all 0.2s ease'
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(99,102,241,0.45)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(99,102,241,0.3)'; }}
         >
           {currentQ < questions.length - 1 ? (
             <><ChevronRight size={16} /> Next Question</>
@@ -557,30 +369,15 @@ function InteractiveQuiz({ questions }) {
   );
 }
 
-// ─── Skeleton Loader ──────────────────────────────────────────────────────────
-function Skeleton({ height = 16, width = '100%', radius = 8, mb = 8 }) {
-  return (
-    <div style={{
-      height, width, borderRadius: radius, marginBottom: mb,
-      background: 'linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card) 75%)',
-      backgroundSize: '200% 100%',
-      animation: 'shimmer 1.4s infinite linear'
-    }} />
-  );
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function StudyCompanion({ userData, setUserData }) {
+export default function QuizCompanion({ userData, setUserData }) {
   const [inputMode, setInputMode]     = useState('transcript'); // 'transcript' | 'url'
   const [transcript, setTranscript]   = useState('');
   const [urlInput, setUrlInput]       = useState('');
   const [topic, setTopic]             = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError]             = useState('');
-  const [studyKit, setStudyKit]       = useState(null); // { notes, quiz }
-  const [activeSection, setActiveSection] = useState('notes'); // 'notes' | 'quiz'
-  const [copied, setCopied]           = useState(false);
-  const [notesCollapsed, setNotesCollapsed] = useState(false);
+  const [quizList, setQuizList]       = useState(null); // array of questions
 
   const hasApiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -592,36 +389,34 @@ export default function StudyCompanion({ userData, setUserData }) {
     }
     setError('');
     setIsGenerating(true);
-    setStudyKit(null);
+    setQuizList(null);
 
     try {
-      const prompt = buildStudyPrompt(content, topic);
+      const prompt = buildQuizPrompt(content, topic);
       const response = await callGeminiAI(prompt);
 
       let parsed;
       if (response) {
         parsed = parseAIResponse(response);
-        setStudyKit(parsed);
+        setQuizList(parsed);
       } else {
         // Demo mode fallback
-        parsed = parseAIResponse(DEMO_NOTES);
-        parsed.quiz = DEMO_QUIZ;
-        setStudyKit(parsed);
+        setQuizList(DEMO_QUIZ);
         if (!hasApiKey) {
           setError('demo');
         }
       }
 
-      if (parsed && setUserData) {
+      if (parsed && parsed.length > 0 && setUserData) {
         setUserData(prev => {
           const currentCount = prev.studyKitsGeneratedCount || 0;
           const currentKits = prev.studyKitsHistory || [];
           const newKit = {
-            topic: topic.trim() || 'General Study Content',
+            topic: topic.trim() || 'General Practice Quiz',
             type: inputMode === 'transcript' ? 'Transcript' : 'URL',
             charCount: content.length,
             generatedAt: new Date().toISOString(),
-            questionCount: parsed.quiz?.length || 0
+            questionCount: parsed.length
           };
           return {
             ...prev,
@@ -634,38 +429,17 @@ export default function StudyCompanion({ userData, setUserData }) {
       setError('Something went wrong. Please try again.');
     } finally {
       setIsGenerating(false);
-      setActiveSection('notes');
     }
   };
-
-  const handleCopyNotes = useCallback(() => {
-    if (!studyKit?.notes) return;
-    navigator.clipboard.writeText(studyKit.notes);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [studyKit]);
-
-  const handleDownloadPDF = useCallback(() => {
-    if (!studyKit?.notes) return;
-    const doc = new jsPDF();
-    const lines = doc.splitTextToSize(studyKit.notes.replace(/\*\*/g, '').replace(/#{1,4}\s/g, ''), 180);
-    doc.setFontSize(16);
-    doc.text('AI Study Kit', 15, 20);
-    doc.setFontSize(10);
-    doc.text(lines, 15, 35);
-    doc.save('study-kit.pdf');
-  }, [studyKit]);
 
   const charCount = transcript.length;
 
   return (
     <div className="study-companion-container">
-
       {/* ── Shimmer animation keyframe ─── */}
       <style>{`
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
       `}</style>
 
       {/* ── Page Header ─────────────────────────────────────────────────── */}
@@ -673,44 +447,25 @@ export default function StudyCompanion({ userData, setUserData }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '8px' }}>
           <div style={{
             width: '44px', height: '44px', borderRadius: '14px',
-            background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+            background: 'linear-gradient(135deg, #ec4899, #7c3aed)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(124,58,237,0.35)'
+            boxShadow: '0 4px 16px rgba(236,72,153,0.35)'
           }}>
-            <BookOpen size={22} color="#fff" strokeWidth={2} />
+            <Brain size={22} color="#fff" strokeWidth={2} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-              AI Study Companion
+              AI Quizzes
             </h1>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-subtle)', margin: 0, fontWeight: 500 }}>
-              Transform any content into a complete Study Kit — notes, key terms & interactive quiz
+              Generate interactive assessments from any transcript, text content, or video link
             </p>
           </div>
-        </div>
-
-        {/* Stats pills */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
-          {[
-            { icon: '📝', label: 'AI-Generated Notes' },
-            { icon: '🔑', label: 'Key Terms Extraction' },
-            { icon: '🧠', label: '10-Question Quiz' },
-            { icon: '📊', label: 'Score Tracking' },
-          ].map((p, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '4px 12px', borderRadius: '20px',
-              background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.18)',
-              fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500
-            }}>
-              <span>{p.icon}</span> {p.label}
-            </div>
-          ))}
         </div>
       </div>
 
       {/* ── Main Layout ──────────────────────────────────────────────────── */}
-      <div className={`study-companion-grid ${studyKit ? 'has-kit' : ''}`}>
+      <div className={`study-companion-grid ${quizList ? 'has-kit' : ''}`}>
 
         {/* ── Left: Input Panel ──────────────────────────────────────────── */}
         <div style={{
@@ -719,7 +474,7 @@ export default function StudyCompanion({ userData, setUserData }) {
           padding: '24px', animation: 'fadeInUp 0.5s ease'
         }}>
           <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={16} color="#818cf8" />
+            <Sparkles size={16} color="#ec4899" />
             Content Input
           </h2>
 
@@ -730,7 +485,7 @@ export default function StudyCompanion({ userData, setUserData }) {
             border: '1px solid var(--border-color)'
           }}>
             {[
-              { id: 'transcript', label: 'Transcript', icon: AlignLeft },
+              { id: 'transcript', label: 'Transcript / Text', icon: AlignLeft },
               { id: 'url', label: 'URL / Link', icon: Globe },
             ].map(m => {
               const Icon = m.icon;
@@ -740,7 +495,7 @@ export default function StudyCompanion({ userData, setUserData }) {
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                   padding: '8px 12px', borderRadius: '8px', border: 'none',
                   background: active ? 'var(--bg-card)' : 'transparent',
-                  color: active ? '#818cf8' : 'var(--text-muted)',
+                  color: active ? '#ec4899' : 'var(--text-muted)',
                   fontSize: '0.82rem', fontWeight: active ? 700 : 400,
                   cursor: 'pointer', transition: 'all 0.2s ease',
                   boxShadow: active ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'
@@ -755,13 +510,13 @@ export default function StudyCompanion({ userData, setUserData }) {
           {inputMode === 'transcript' && (
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                Video Transcript / Educational Content
+                Content Transcript / Raw Text
               </label>
               <textarea
                 value={transcript}
                 onChange={e => setTranscript(e.target.value)}
-                placeholder="Paste your video transcript, lecture notes, or any educational text here…"
-                rows={10}
+                placeholder="Paste video transcript, articles, notes, or any educational text here…"
+                rows={8}
                 style={{
                   width: '100%', padding: '12px 14px', borderRadius: '12px',
                   background: 'var(--bg-main)', border: '1px solid var(--border-color)',
@@ -769,8 +524,6 @@ export default function StudyCompanion({ userData, setUserData }) {
                   resize: 'vertical', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', transition: 'border-color 0.2s'
                 }}
-                onFocus={e => { e.target.style.borderColor = 'rgba(99,102,241,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.08)'; }}
-                onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
               />
               <div style={{ fontSize: '0.7rem', color: 'var(--text-subtle)', textAlign: 'right', marginTop: '4px' }}>
                 {charCount.toLocaleString()} characters
@@ -794,19 +547,14 @@ export default function StudyCompanion({ userData, setUserData }) {
                     width: '100%', padding: '11px 14px 11px 36px', borderRadius: '12px',
                     background: 'var(--bg-main)', border: '1px solid var(--border-color)',
                     color: 'var(--text-main)', fontSize: '0.84rem', outline: 'none',
-                    fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color 0.2s'
+                    fontFamily: 'inherit', boxSizing: 'border-box'
                   }}
-                  onFocus={e => { e.target.style.borderColor = 'rgba(99,102,241,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.08)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
                 />
               </div>
-              <p style={{ fontSize: '0.72rem', color: 'var(--text-subtle)', margin: '6px 0 0' }}>
-                Note: URL content extraction depends on page accessibility.
-              </p>
             </div>
           )}
 
-          {/* Topic Tag (optional) */}
+          {/* Topic Tag */}
           <div style={{ marginBottom: '18px' }}>
             <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
               Subject / Topic <span style={{ fontWeight: 400, color: 'var(--text-subtle)' }}>(optional)</span>
@@ -816,7 +564,7 @@ export default function StudyCompanion({ userData, setUserData }) {
               <input
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
-                placeholder="e.g. Computer Science, Biology, History…"
+                placeholder="e.g. Science, Tech, Philosophy…"
                 style={{
                   width: '100%', padding: '9px 14px 9px 32px', borderRadius: '10px',
                   background: 'var(--bg-main)', border: '1px solid var(--border-color)',
@@ -860,103 +608,66 @@ export default function StudyCompanion({ userData, setUserData }) {
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
               padding: '14px', borderRadius: '13px', border: 'none',
-              background: isGenerating ? 'rgba(99,102,241,0.4)' : 'linear-gradient(135deg, #7c3aed, #6366f1)',
+              background: isGenerating ? 'rgba(99,102,241,0.4)' : 'linear-gradient(135deg, #ec4899, #7c3aed)',
               color: '#fff', fontSize: '0.92rem', fontWeight: 700,
               cursor: isGenerating ? 'not-allowed' : 'pointer',
-              boxShadow: isGenerating ? 'none' : '0 4px 18px rgba(124,58,237,0.4)',
+              boxShadow: isGenerating ? 'none' : '0 4px 18px rgba(236,72,153,0.4)',
               transition: 'all 0.2s ease', letterSpacing: '0.01em'
             }}
-            onMouseEnter={e => { if (!isGenerating) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(124,58,237,0.5)'; }}}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = isGenerating ? 'none' : '0 4px 18px rgba(124,58,237,0.4)'; }}
           >
             {isGenerating ? (
-              <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating Study Kit…</>
+              <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating Practice Quiz…</>
             ) : (
-              <><Zap size={16} /> Generate Study Kit</>
+              <><Zap size={16} /> Generate Practice Quiz</>
             )}
           </button>
-
-          {/* Tips */}
-          {!studyKit && !isGenerating && (
-            <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.1)' }}>
-              <p style={{ fontSize: '0.73rem', fontWeight: 700, color: '#818cf8', margin: '0 0 8px' }}>💡 Tips for best results</p>
-              <ul style={{ margin: 0, paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {['Paste complete transcripts (lectures, tutorials, videos)', 'Include at least 200+ words for accurate quiz generation', 'Add a subject tag to help AI focus on relevant concepts'].map((t, i) => (
-                  <li key={i} style={{ fontSize: '0.73rem', color: 'var(--text-subtle)', lineHeight: 1.5 }}>{t}</li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
 
-        {/* ── Right: Study Kit Output ────────────────────────────────────── */}
-        {(isGenerating || studyKit) && (
+        {/* ── Right: Quiz Output ── */}
+        {(isGenerating || quizList) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeInUp 0.5s ease' }}>
-
-            {/* ── Notes Section ─── */}
             <div style={{
               background: 'var(--bg-card)', borderRadius: '18px',
               border: '1px solid var(--border-color)', overflow: 'hidden'
             }}>
-              {/* Notes header */}
               <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '16px 20px', borderBottom: '1px solid var(--border-color)',
-                background: 'rgba(124,58,237,0.03)'
+                background: 'rgba(236,72,153,0.03)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileText size={15} color="#818cf8" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>AI Notes & Summary</span>
+                  <Brain size={15} color="#ec4899" />
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>Interactive Quiz</span>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={handleCopyNotes} disabled={isGenerating} style={{
-                    display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px',
-                    borderRadius: '8px', border: '1px solid var(--border-color)',
-                    background: 'transparent', color: 'var(--text-muted)',
-                    fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer'
-                  }}>
-                    {copied ? <><Check size={12} color="#10b981" /> Copied</> : <><Copy size={12} /> Copy</>}
-                  </button>
-                  <button onClick={handleDownloadPDF} disabled={isGenerating} style={{
-                    display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px',
-                    borderRadius: '8px', border: '1px solid rgba(99,102,241,0.25)',
-                    background: 'rgba(99,102,241,0.08)', color: '#818cf8',
-                    fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer'
-                  }}>
-                    <Download size={12} /> PDF
-                  </button>
-                </div>
+                <span style={{
+                  fontSize: '0.72rem', fontWeight: 700, color: '#ec4899',
+                  background: 'rgba(236,72,153,0.1)', padding: '3px 10px', borderRadius: '10px'
+                }}>
+                  {quizList?.length || 0} Questions
+                </span>
               </div>
 
-              {/* Notes body */}
-              <div style={{ padding: '20px 24px', maxHeight: '600px', overflowY: 'auto' }}>
+              <div style={{ padding: '20px 24px' }}>
                 {isGenerating ? (
                   <div>
-                    <Skeleton height={20} width="60%" mb={12} radius={6} />
-                    <Skeleton height={14} mb={6} radius={5} />
-                    <Skeleton height={14} width="90%" mb={6} radius={5} />
-                    <Skeleton height={14} width="80%" mb={20} radius={5} />
-                    <Skeleton height={18} width="40%" mb={10} radius={6} />
-                    {[1,2,3,4].map(i => (
-                      <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                        <Skeleton height={32} width={80} radius={8} mb={0} />
-                        <Skeleton height={32} radius={8} mb={0} />
-                      </div>
-                    ))}
-                    <Skeleton height={18} width="45%" mb={10} radius={6} />
-                    {[1,2,3].map(i => <Skeleton key={i} height={14} mb={6} radius={5} />)}
+                    <Skeleton height={12} width="50%" mb={16} radius={5} />
+                    <Skeleton height={6} mb={24} radius={4} />
+                    <Skeleton height={70} mb={16} radius={12} />
+                    {[1,2,3,4].map(i => <Skeleton key={i} height={48} mb={10} radius={12} />)}
                   </div>
+                ) : quizList?.length > 0 ? (
+                  <InteractiveQuiz questions={quizList} />
                 ) : (
-                  <MarkdownRenderer text={studyKit?.notes} />
+                  <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                    <Brain size={32} style={{ marginBottom: '12px', opacity: 0.4 }} />
+                    <p style={{ fontSize: '0.875rem' }}>Quiz could not be parsed. Try regenerating.</p>
+                  </div>
                 )}
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Spin keyframe */}
-      <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
     </div>
   );
 }

@@ -13,7 +13,8 @@ import {
   X,
   Zap,
   ShieldCheck,
-  BookOpen
+  BookOpen,
+  Brain
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUser, onSignOut, isOpen, onClose }) {
@@ -26,6 +27,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
     { id: 'email-generator',  label: 'AI Email Generator',    icon: Mail,        badge: 'New' },
     { id: 'ai-cv-maker',      label: 'AI CV Maker',           icon: FileEdit,    badge: 'AI' },
     { id: 'study-companion',  label: 'AI Study Companion',    icon: BookOpen,    badge: 'Student' },
+    { id: 'ai-quizzes',       label: 'AI Quizzes',            icon: Brain,       badge: 'Quiz' },
     { id: 'settings',         label: 'Profile & Settings',    icon: Settings },
     { id: 'admin-panel',      label: 'Admin Panel',           icon: ShieldCheck, badge: 'Admin' },
   ];
@@ -43,6 +45,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
     AI:      { bg: 'rgba(236,72,153,0.12)', color: '#f472b6',  border: 'rgba(236,72,153,0.25)' },
     Admin:   { bg: 'rgba(239,68,68,0.12)',  color: '#f87171',  border: 'rgba(239,68,68,0.25)' },
     Student: { bg: 'rgba(124,58,237,0.12)', color: '#a78bfa',  border: 'rgba(124,58,237,0.25)' },
+    Quiz:    { bg: 'rgba(236,72,153,0.12)', color: '#f472b6',  border: 'rgba(236,72,153,0.25)' },
   };
 
   return (
