@@ -36,11 +36,19 @@ async function callGeminiAI(prompt) {
 }
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
-function buildStudyPrompt(content, topic) {
+function buildStudyPrompt(content, topic, isLongNotes) {
+  const lengthInstruction = isLongNotes
+    ? `Generate extremely DETAILED, COMPREHENSIVE, and IN-DEPTH notes. Do not summarize briefly. Explain concepts thoroughly with full examples, context, and clear explanations for each heading. Make the notes long and rich in educational information.`
+    : `Generate CONCISE, DIRECT, and BRIEF notes. Keep bullet points short, definitions punchy, and highlight only the most critical information. Keep the size of the notes short.`;
+
   return `### SYSTEM PROMPT: AI STUDY COMPANION GENERATOR
 
 You are an expert educational AI assistant. Your task is to process the provided video transcript or educational content and generate a complete Study Kit containing two main components: AI Notes & Summary and Interactive Quizzes.
 ${topic ? `\nThe topic/subject context is: ${topic}\n` : ''}
+
+---
+### LENGTH REQUIREMENT:
+${lengthInstruction}
 ---
 
 ### REQUIRED OUTPUT FORMAT
@@ -581,6 +589,7 @@ export default function StudyCompanion({ userData, setUserData }) {
   const [activeSection, setActiveSection] = useState('notes'); // 'notes' | 'quiz'
   const [copied, setCopied]           = useState(false);
   const [notesCollapsed, setNotesCollapsed] = useState(false);
+  const [isLongNotes, setIsLongNotes] = useState(false);
 
   const hasApiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -595,7 +604,7 @@ export default function StudyCompanion({ userData, setUserData }) {
     setStudyKit(null);
 
     try {
-      const prompt = buildStudyPrompt(content, topic);
+      const prompt = buildStudyPrompt(content, topic, isLongNotes);
       const response = await callGeminiAI(prompt);
 
       let parsed;
@@ -827,6 +836,25 @@ export default function StudyCompanion({ userData, setUserData }) {
             </div>
           </div>
 
+          {/* Detailed/Long Notes Checkbox */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <input
+              type="checkbox"
+              id="long-notes-toggle"
+              checked={isLongNotes}
+              onChange={e => setIsLongNotes(e.target.checked)}
+              style={{
+                width: '16px',
+                height: '16px',
+                accentColor: '#7c3aed',
+                cursor: 'pointer'
+              }}
+            />
+            <label htmlFor="long-notes-toggle" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none' }}>
+              Enable Detailed/Long Notes
+            </label>
+          </div>
+
           {/* Error */}
           {error && error !== 'demo' && (
             <div style={{
@@ -929,7 +957,7 @@ export default function StudyCompanion({ userData, setUserData }) {
               </div>
 
               {/* Notes body */}
-              <div style={{ padding: '20px 24px', maxHeight: '600px', overflowY: 'auto' }}>
+              <div style={{ padding: '20px 24px' }}>
                 {isGenerating ? (
                   <div>
                     <Skeleton height={20} width="60%" mb={12} radius={6} />
