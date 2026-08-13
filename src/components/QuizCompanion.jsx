@@ -587,20 +587,6 @@ export default function QuizCompanion({ userData, setUserData }) {
             </div>
           )}
 
-          {/* Demo mode notice */}
-          {error === 'demo' && (
-            <div style={{
-              display: 'flex', gap: '8px', padding: '10px 14px', borderRadius: '10px',
-              background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)',
-              marginBottom: '14px'
-            }}>
-              <AlertCircle size={14} color="#f59e0b" style={{ flexShrink: 0, marginTop: '1px' }} />
-              <span style={{ fontSize: '0.78rem', color: '#f59e0b', lineHeight: 1.5 }}>
-                <strong>Demo mode:</strong> Add <code style={{ background: 'rgba(245,158,11,0.1)', padding: '0 4px', borderRadius: '4px' }}>VITE_GEMINI_API_KEY</code> to .env.local for live AI generation.
-              </span>
-            </div>
-          )}
-
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
