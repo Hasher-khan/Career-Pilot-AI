@@ -309,9 +309,9 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
           ))}
         </nav>
 
-        {/* CTA Buttons — login disabled temporarily */}
+        {/* CTA Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          <button disabled className="btn btn-primary" title="Login coming soon" style={{ fontSize: '0.88rem', padding: '9px 18px', opacity: 0.5, cursor: 'not-allowed' }}>Get Started</button>
+          <button onClick={openSignIn} className="btn btn-primary" style={{ fontSize: '0.88rem', padding: '9px 18px' }}>Get Started</button>
         </div>
       </header>
 
@@ -319,10 +319,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
       <section style={{ padding: 'clamp(48px, 7vw, 96px) clamp(16px, 4vw, 48px)', maxWidth: '1280px', margin: '0 auto', width: '100%', display: 'flex', flexWrap: 'wrap', gap: '48px', alignItems: 'center' }}>
         {/* Hero Text */}
         <div style={{ flex: '1 1 300px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '5px 14px', borderRadius: '999px', backgroundColor: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', marginBottom: '24px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#6366f1', boxShadow: '0 0 6px rgba(99,102,241,0.8)', animation: 'lp-pulse 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.6px' }}>V1.0 — AI Interview Integration Live</span>
-          </div>
+
 
           <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.4rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-1.5px', marginBottom: '20px' }}>
             Navigate Your Career<br />
@@ -334,10 +331,10 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '32px' }}>
-            <button disabled className="btn btn-primary" title="Login coming soon" style={{ padding: '14px 28px', fontSize: '1rem', fontWeight: 800, gap: '10px', boxShadow: '0 8px 32px rgba(99,102,241,0.4)', opacity: 0.5, cursor: 'not-allowed' }}>
+            <button onClick={onGetStarted} className="btn btn-primary" style={{ padding: '14px 28px', fontSize: '1rem', fontWeight: 800, gap: '10px', boxShadow: '0 8px 32px rgba(99,102,241,0.4)' }}>
               <Sparkles size={18} /> Get Started Free
             </button>
-            <button disabled className="btn btn-secondary" title="Login coming soon" style={{ padding: '14px 22px', fontSize: '1rem', gap: '8px', opacity: 0.5, cursor: 'not-allowed' }}>
+            <button onClick={onGetStarted} className="btn btn-secondary" style={{ padding: '14px 22px', fontSize: '1rem', gap: '8px' }}>
               Watch Demo <ArrowRight size={16} />
             </button>
           </div>
@@ -501,7 +498,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
                 </li>
               ))}
             </ul>
-            <button disabled className="btn btn-primary" title="Login temporarily disabled" style={{ width: '100%', marginTop: 'auto', padding: '14px', fontWeight: 800, opacity: 0.5, cursor: 'not-allowed' }}>🔒 Login Disabled</button>
+            <button onClick={openSignIn} className="btn btn-primary" style={{ width: '100%', marginTop: 'auto', padding: '14px', fontWeight: 800 }}>🚀 Get Started Free</button>
           </div>
         </div>
       </section>
