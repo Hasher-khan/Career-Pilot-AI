@@ -277,7 +277,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
         zIndex: 101
       }}>
         <Sparkles size={16} style={{ animation: 'lp-pulse 1.5s infinite' }} />
-        <span>🎉 careerpilotai is now free bt Owner Hasher Khan</span>
+        <span>🎉 careerpilotai is now free by Owner Hasher Khan</span>
       </div>
 
       {/* ── Sticky Header ──────────────────────────────────────────────────── */}
