@@ -39,8 +39,39 @@ async function callGeminiAI(prompt) {
 // ─── System Prompt ────────────────────────────────────────────────────────────
 function buildStudyPrompt(content, topic, isLongNotes) {
   const lengthInstruction = isLongNotes
-    ? `Generate extremely DETAILED, COMPREHENSIVE, and IN-DEPTH notes. Do not summarize briefly. Explain concepts thoroughly with examples, context, connections, and clear explanations under every heading. Use this exact Markdown structure for SECTION 1: start with one # title, then use ## for Executive Summary, Key Terms & Vocabulary, and each major concept, plus ### for sub-concepts. Include meaningful bullet lists and at least two callout lines beginning with "> **Remember:**" or "> **Example:**". Make every section substantive, scannable, and rich in educational information.`
-    : `Generate CONCISE, DIRECT, and BRIEF notes. Keep bullet points short, definitions punchy, and highlight only the most critical information. Keep the size of the notes short.`;
+    ? `Generate extremely DETAILED, COMPREHENSIVE, and IN-DEPTH notes. Explain concepts thoroughly with examples, context, connections, and clear explanations under every heading. Use one # title, ## for major sections, and ### for subtopics. Every heading MUST be followed by one or more complete, well-written paragraphs. Do not use bullet lists, cards, fragments, or one-line answers.`
+    : `Generate CONCISE, DIRECT, and BRIEF notes. Use clear headings followed by short complete paragraphs. Do not use bullet lists, cards, fragments, or one-line answers.`;
+
+  return `# AI Study Kit: Question & Answer Guide
+
+## Section 1: Short Answer Questions
+Provide 3 to 5 foundational questions based only on the supplied source. Each answer must be one or two complete, cohesive paragraphs.
+
+### Q1: [Clear question]
+**Answer:** [A direct paragraph-style explanation with full sentences.]
+
+## Section 2: Comprehensive Long Answer Questions
+Provide 2 to 4 analytical questions about core concepts, mechanisms, or real-world applications. Each answer must be two to four full, well-structured paragraphs.
+
+### Q1: [Comprehensive question]
+**Answer:**
+[Paragraph 1: Core definition and primary explanation.]
+
+[Paragraph 2: Detailed mechanism, context, or breakdown.]
+
+[Paragraph 3: Implications, advantages, or practical application.]
+
+INSTRUCTIONS:
+- Maintain an academic, professional, and accessible tone.
+- Do not use bullet points, summaries, outline lists, cards, fragments, or one-line answers.
+- Every answer must be written in complete, cohesive, well-structured paragraphs with high information density.
+- Use clean Markdown headings exactly as shown so the Q&A renders smoothly in the app and PDF.
+
+LENGTH PREFERENCE:
+${lengthInstruction}
+
+SOURCE CONTENT:
+${content}`;
 
   return `### SYSTEM PROMPT: AI STUDY COMPANION GENERATOR
 
@@ -194,12 +225,12 @@ function MarkdownRenderer({ text }) {
   const flushList = (key) => {
     if (listBuffer.length) {
       elements.push(
-        <ul key={`ul-${key}`} style={{ margin: '8px 0 12px 0', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        <div key={`ul-${key}`} style={{ margin: '8px 0 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {listBuffer.map((item, i) => (
-            <li key={i} style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}
+            <p key={i} style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.7, margin: 0 }}
               dangerouslySetInnerHTML={{ __html: item }} />
           ))}
-        </ul>
+        </div>
       );
       listBuffer = [];
       inList = false;
@@ -725,27 +756,30 @@ export default function StudyCompanion({ userData, setUserData }) {
     const printSurface = document.createElement('div');
     const printHeader = document.createElement('div');
     const notesClone = element.cloneNode(true);
+    const escapedTopic = (topic.trim() || 'Learning Notes')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
 
     printSurface.setAttribute('aria-hidden', 'true');
     Object.assign(printSurface.style, {
       position: 'fixed', left: '-10000px', top: '0', width: '794px',
-      padding: '48px 54px 42px', background: '#ffffff', color: '#000000',
+      padding: '48px 54px 42px', background: '#ffffff', color: '#172033',
       fontFamily: 'Arial, Helvetica, sans-serif', boxSizing: 'border-box',
-      '--text-main': '#000000', '--text-muted': '#000000', '--text-subtle': '#000000',
-      '--border-color': 'transparent', '--bg-card': '#ffffff', '--bg-input': '#ffffff'
+      '--text-main': '#172033', '--text-muted': '#475569', '--text-subtle': '#64748b',
+      '--border-color': '#dbe3f0', '--bg-card': '#ffffff', '--bg-input': '#f8fafc'
     });
     printHeader.innerHTML = `
-      <div style="font-size:23px;font-weight:400;color:#000000;margin-bottom:36px">AI Study Kit</div>
+      <div style="height:5px;border-radius:6px;background:linear-gradient(90deg,#4f46e5,#7c3aed);margin-bottom:24px"></div>
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.6px;color:#172033">AI Study Kit</div>
+      <div style="margin-top:7px;font-size:13px;color:#64748b">${escapedTopic} - Comprehensive study notes</div>
+      <div style="margin:22px 0 28px;border-bottom:1px solid #dbe3f0"></div>
     `;
     notesClone.removeAttribute('id');
     notesClone.style.padding = '0';
     notesClone.style.background = 'transparent';
-    notesClone.querySelectorAll('div, aside, span').forEach(node => {
-      node.style.background = 'transparent';
-      node.style.border = 'none';
-      node.style.boxShadow = 'none';
-      node.style.color = '#000000';
-    });
     printSurface.append(printHeader, notesClone);
     document.body.appendChild(printSurface);
 
@@ -759,7 +793,7 @@ export default function StudyCompanion({ userData, setUserData }) {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const marginX = 15;
-      const topMargin = 15;
+      const topMargin = 24;
       const footerSpace = 14;
       const contentWidth = pdfWidth - marginX * 2;
       const contentHeight = pdfHeight - topMargin - footerSpace;
@@ -775,8 +809,11 @@ export default function StudyCompanion({ userData, setUserData }) {
         slice.getContext('2d').drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
 
         if (page > 0) pdf.addPage();
-        pdf.setTextColor(0, 0, 0);
+        pdf.setFillColor(79, 70, 229);
+        pdf.rect(0, 0, pdfWidth, 5, 'F');
+        pdf.setTextColor(71, 85, 105);
         pdf.setFontSize(8);
+        pdf.text('AI STUDY KIT', marginX, 15);
         pdf.text(`Page ${page + 1}`, pdfWidth - marginX, pdfHeight - 7, { align: 'right' });
         pdf.addImage(slice.toDataURL('image/png'), 'PNG', marginX, topMargin, contentWidth, sliceHeight * contentWidth / canvas.width);
 
