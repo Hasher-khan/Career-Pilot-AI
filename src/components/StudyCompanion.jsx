@@ -448,7 +448,7 @@ function InteractiveQuiz({ questions }) {
   }
 
   return (
-    <div>
+    <div className="interactive-quiz">
       {/* Progress header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>

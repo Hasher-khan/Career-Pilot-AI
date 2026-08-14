@@ -449,6 +449,11 @@ body {
 
 /* App Layout & Sidebar Drawer */
 @media (max-width: 1024px) {
+  /* Extra scroll length inside quiz cards keeps the final action clear of the fixed nav. */
+  .interactive-quiz {
+    padding-bottom: calc(160px + env(safe-area-inset-bottom));
+  }
+
   .app-container {
     position: relative;
     overflow-x: hidden;
