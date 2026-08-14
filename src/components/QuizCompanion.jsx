@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Sparkles, Link2, Zap, Award, Brain,
   CheckCircle, XCircle, RotateCcw, AlignLeft,
@@ -157,6 +157,7 @@ function InteractiveQuiz({ questions }) {
   const [score, setScore]             = useState(0);
   const [answers, setAnswers]         = useState([]);
   const [finished, setFinished]       = useState(false);
+  const nextButtonRef = useRef(null);
 
   const question = questions[currentQ];
   const isCorrect = selectedOpt && selectedOpt.startsWith(question?.correct);
@@ -186,6 +187,18 @@ function InteractiveQuiz({ questions }) {
   };
 
   const progress = ((currentQ + (revealed ? 1 : 0)) / questions.length) * 100;
+
+  // The mobile navigation is fixed to the bottom of the screen. Once feedback
+  // is shown, bring the next action into the visible part of the scroll area.
+  useEffect(() => {
+    if (!revealed || !nextButtonRef.current || !window.matchMedia('(max-width: 1024px)').matches) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      nextButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentQ, revealed]);
 
   if (finished) {
     const pct = Math.round((score / questions.length) * 100);
@@ -369,6 +382,8 @@ function InteractiveQuiz({ questions }) {
       {/* Next button */}
       {revealed && (
         <button
+          ref={nextButtonRef}
+          className="quiz-next-action"
           onClick={handleNext}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',

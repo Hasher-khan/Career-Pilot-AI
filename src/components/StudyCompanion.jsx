@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   BookOpen, Sparkles, Copy, Check, RefreshCw, ChevronRight,
   ChevronLeft, FileText, Link2, Tag, Zap, Award, Brain,
@@ -352,6 +352,7 @@ function InteractiveQuiz({ questions }) {
   const [score, setScore]             = useState(0);
   const [answers, setAnswers]         = useState([]);
   const [finished, setFinished]       = useState(false);
+  const nextButtonRef = useRef(null);
 
   const question = questions[currentQ];
   const isCorrect = selectedOpt && selectedOpt.startsWith(question?.correct);
@@ -381,6 +382,17 @@ function InteractiveQuiz({ questions }) {
   };
 
   const progress = ((currentQ + (revealed ? 1 : 0)) / questions.length) * 100;
+
+  // Keep the action above the fixed mobile navigation after feedback appears.
+  useEffect(() => {
+    if (!revealed || !nextButtonRef.current || !window.matchMedia('(max-width: 1024px)').matches) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      nextButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentQ, revealed]);
 
   if (finished) {
     const pct = Math.round((score / questions.length) * 100);
@@ -564,6 +576,8 @@ function InteractiveQuiz({ questions }) {
       {/* Next button */}
       {revealed && (
         <button
+          ref={nextButtonRef}
+          className="quiz-next-action"
           onClick={handleNext}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
