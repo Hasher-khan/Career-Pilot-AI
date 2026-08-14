@@ -9,34 +9,47 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 // ─── Gemini API Call ─────────────────────────────────────────────────────────
-async function callGeminiAI(prompt) {
+async function callGeminiAI(prompt, sourceUrl = '') {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     // Simulate a delay for demo mode
     await new Promise(r => setTimeout(r, 2000));
     return null;
   }
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: 'Generate an academic Question & Answer study guide. Every answer must use complete paragraphs under Markdown question headings. Never use bullet points or outline lists in answers.' }]
-          },
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.45, maxOutputTokens: 8192 }
-        })
-      }
-    );
-    const json = await res.json();
-    return json?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-  } catch (e) {
-    console.error('Gemini API error:', e);
-    return null;
+  const isYouTubeUrl = sourceUrl && /(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(new URL(sourceUrl).hostname);
+  const parts = isYouTubeUrl
+    ? [{ file_data: { file_uri: sourceUrl } }, { text: prompt }]
+    : [{ text: sourceUrl ? `${prompt}\n\nSOURCE URL TO ANALYZE:\n${sourceUrl}` : prompt }];
+
+  const body = {
+    systemInstruction: {
+      parts: [{ text: 'Generate an academic Question & Answer study guide. Every answer must use complete paragraphs under Markdown question headings. Never use bullet points or outline lists in answers.' }]
+    },
+    contents: [{ parts }],
+    generationConfig: { temperature: 0.45, maxOutputTokens: 8192 }
+  };
+
+  // Gemini processes public YouTube links as video input. For regular web pages,
+  // URL Context fetches the actual page rather than asking the model to guess from
+  // a bare link.
+  if (sourceUrl && !isYouTubeUrl) body.tools = [{ url_context: {} }];
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }
+  );
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error('Gemini API error:', json);
+    throw new Error(json?.error?.message || `The AI service returned an error (${res.status}).`);
   }
+  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('The AI service did not return study content. Please try again.');
+  return text;
 }
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
@@ -64,7 +77,7 @@ Provide 2 to 4 analytical questions about core concepts, mechanisms, or real-wor
 
 [Paragraph 3: Implications, advantages, or practical application.]
 
-INSTRUCTIONS:
+${topic ? `SUBJECT / TOPIC: ${topic}\n` : ''}INSTRUCTIONS:
 - Maintain an academic, professional, and accessible tone.
 - Do not use bullet points, summaries, outline lists, cards, fragments, or one-line answers.
 - Every answer must be written in complete, cohesive, well-structured paragraphs with high information density.
@@ -176,6 +189,7 @@ const DEMO_QUIZ = [
 ];
 
 // ─── Parse AI response into notes + quiz ─────────────────────────────────────
+
 function parseAIResponse(text) {
   if (!text) return { notes: null, quiz: [] };
 
@@ -692,6 +706,15 @@ export default function StudyCompanion({ userData, setUserData }) {
       setError(inputMode === 'transcript' ? 'Please paste a transcript or educational content.' : 'Please enter a URL.');
       return;
     }
+    if (inputMode === 'url') {
+      try {
+        const url = new URL(content);
+        if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+      } catch {
+        setError('Enter a complete public URL starting with http:// or https://.');
+        return;
+      }
+    }
     setError('');
     setIsGenerating(true);
     setStudyKit(null);
@@ -699,7 +722,7 @@ export default function StudyCompanion({ userData, setUserData }) {
 
     try {
       const prompt = buildStudyPrompt(content, topic, isLongNotes);
-      const response = await callGeminiAI(prompt);
+      const response = await callGeminiAI(prompt, inputMode === 'url' ? content : '');
 
       let parsed;
       if (response) {
@@ -707,7 +730,7 @@ export default function StudyCompanion({ userData, setUserData }) {
         setStudyKit(parsed);
       } else {
         // Demo mode fallback
-        parsed = parseAIResponse(DEMO_QA);
+        parsed = parseAIResponse(DEMO_NOTES);
         parsed.quiz = DEMO_QUIZ;
         setStudyKit(parsed);
         if (!hasApiKey) {
@@ -718,7 +741,9 @@ export default function StudyCompanion({ userData, setUserData }) {
       if (parsed && setUserData) {
         setUserData(prev => {
           const currentCount = prev.studyKitsGeneratedCount || 0;
-          const currentKits = prev.studyKitsHistory || [];
+          // Older saved profiles may contain malformed history data. Never let
+          // analytics prevent a successfully generated study kit from showing.
+          const currentKits = Array.isArray(prev?.studyKitsHistory) ? prev.studyKitsHistory : [];
           const newKit = {
             topic: topic.trim() || 'General Study Content',
             type: inputMode === 'transcript' ? 'Transcript' : 'URL',
@@ -735,7 +760,8 @@ export default function StudyCompanion({ userData, setUserData }) {
       }
     } catch (e) {
       setShouldAutoDownloadPdf(false);
-      setError('Something went wrong. Please try again.');
+      console.error('Study kit generation failed:', e);
+      setError(e instanceof Error ? e.message : 'Unable to generate the study kit. Please try again.');
     } finally {
       setIsGenerating(false);
       setActiveSection('notes');
