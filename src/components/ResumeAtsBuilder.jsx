@@ -845,9 +845,12 @@ export default function ResumeAtsBuilder({ userData, setUserData }) {
           <div style={{
             overflowY: 'auto',
             overflowX: 'auto',
-            maxHeight: isMobile ? 'calc(100vh - 280px)' : 'calc(100vh - 180px)',
+            /* Reduce max-height on mobile to account for header + controls + mobile bottom nav */
+            maxHeight: isMobile ? `calc(100vh - 320px - env(safe-area-inset-bottom))` : 'calc(100vh - 180px)',
             minHeight: isMobile ? '400px' : '650px',
+            /* Add extra bottom padding on mobile so bottom action buttons are never obscured by the fixed bottom nav */
             padding: isMobile ? '12px 8px' : '24px 16px',
+            paddingBottom: isMobile ? `calc(96px + env(safe-area-inset-bottom))` : undefined,
             display: 'flex',
             justifyContent: 'flex-start',
             alignItems: 'flex-start',
