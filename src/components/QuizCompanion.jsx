@@ -325,6 +325,27 @@ function InteractiveQuiz({ questions }) {
         })}
       </div>
 
+      {/* Skip Button */}
+      {!revealed && (
+        <button
+          onClick={() => {
+            const nextAnswers = [...answers];
+            nextAnswers[currentQ] = { correct: false, skipped: true };
+            setAnswers(nextAnswers);
+            setRevealed(true);
+          }}
+          style={{
+            marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            padding: '10px 16px', borderRadius: '10px',
+            background: 'transparent', border: '1px solid var(--border-color)',
+            color: 'var(--text-subtle)', fontSize: '0.85rem', fontWeight: 600,
+            cursor: 'pointer', transition: 'all 0.2s ease', width: '100%'
+          }}
+        >
+          Skip Question
+        </button>
+      )}
+
       {/* Explanation */}
       {revealed && question.explanation && (
         <div style={{
