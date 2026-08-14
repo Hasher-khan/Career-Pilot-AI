@@ -18,13 +18,16 @@ async function callGeminiAI(prompt) {
   }
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: 'Generate an academic Question & Answer study guide. Every answer must use complete paragraphs under Markdown question headings. Never use bullet points or outline lists in answers.' }]
+          },
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+          generationConfig: { temperature: 0.45, maxOutputTokens: 8192 }
         })
       }
     );
@@ -704,7 +707,7 @@ export default function StudyCompanion({ userData, setUserData }) {
         setStudyKit(parsed);
       } else {
         // Demo mode fallback
-        parsed = parseAIResponse(DEMO_NOTES);
+        parsed = parseAIResponse(DEMO_QA);
         parsed.quiz = DEMO_QUIZ;
         setStudyKit(parsed);
         if (!hasApiKey) {
@@ -767,7 +770,7 @@ export default function StudyCompanion({ userData, setUserData }) {
     Object.assign(printSurface.style, {
       position: 'fixed', left: '-10000px', top: '0', width: '794px',
       padding: '48px 54px 42px', background: '#ffffff', color: '#172033',
-      fontFamily: 'Arial, Helvetica, sans-serif', boxSizing: 'border-box',
+      fontFamily: 'Georgia, "Times New Roman", serif', boxSizing: 'border-box',
       '--text-main': '#172033', '--text-muted': '#475569', '--text-subtle': '#64748b',
       '--border-color': '#dbe3f0', '--bg-card': '#ffffff', '--bg-input': '#f8fafc'
     });
@@ -776,7 +779,26 @@ export default function StudyCompanion({ userData, setUserData }) {
       <div style="font-size:28px;font-weight:800;letter-spacing:-0.6px;color:#172033">AI Study Kit</div>
       <div style="margin-top:7px;font-size:13px;color:#64748b">${escapedTopic} - Comprehensive study notes</div>
       <div style="margin:22px 0 28px;border-bottom:1px solid #dbe3f0"></div>
-    `;
+`;
+
+const DEMO_QA = `# AI Study Kit: Question & Answer Guide
+
+## Section 1: Short Answer Questions
+
+### Q1: What is an algorithm?
+**Answer:** An algorithm is a clear sequence of instructions used to solve a problem or complete a task. In computing, algorithms help transform an input into a useful result through a repeatable and logical process.
+
+### Q2: Why are data structures important?
+**Answer:** Data structures organize information so that software can store, retrieve, and modify it effectively. Selecting an appropriate structure improves both the performance and clarity of a program.
+
+## Section 2: Comprehensive Long Answer Questions
+
+### Q1: How do algorithms and data structures work together in software development?
+**Answer:** Algorithms define the steps a program takes, while data structures determine how the information required by those steps is arranged. Together, they form the practical foundation of efficient software design.
+
+The choice of data structure can change how quickly an algorithm runs and how much memory it requires. For example, a hash table can make average lookups very fast, while an ordered tree can support sorted operations efficiently.
+
+In real applications, developers evaluate the size of the data, the operations users need, and the required response time before choosing an approach. This careful combination makes systems more reliable, scalable, and easier to maintain.`;
     notesClone.removeAttribute('id');
     notesClone.style.padding = '0';
     notesClone.style.background = 'transparent';
@@ -1103,7 +1125,7 @@ export default function StudyCompanion({ userData, setUserData }) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={15} color="#818cf8" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>AI Notes & Summary</span>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>AI Q&A Study Guide</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={handleCopyNotes} disabled={isGenerating} style={{
