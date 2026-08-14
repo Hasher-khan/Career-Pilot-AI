@@ -39,7 +39,7 @@ async function callGeminiAI(prompt) {
 // ─── System Prompt ────────────────────────────────────────────────────────────
 function buildStudyPrompt(content, topic, isLongNotes) {
   const lengthInstruction = isLongNotes
-    ? `Generate extremely DETAILED, COMPREHENSIVE, and IN-DEPTH notes. Do not summarize briefly. Explain concepts thoroughly with full examples, context, and clear explanations for each heading. Make the notes long and rich in educational information.`
+    ? `Generate extremely DETAILED, COMPREHENSIVE, and IN-DEPTH notes. Do not summarize briefly. Explain concepts thoroughly with examples, context, connections, and clear explanations under every heading. Use this exact Markdown structure for SECTION 1: start with one # title, then use ## for Executive Summary, Key Terms & Vocabulary, and each major concept, plus ### for sub-concepts. Include meaningful bullet lists and at least two callout lines beginning with "> **Remember:**" or "> **Example:**". Make every section substantive, scannable, and rich in educational information.`
     : `Generate CONCISE, DIRECT, and BRIEF notes. Keep bullet points short, definitions punchy, and highlight only the most critical information. Keep the size of the notes short.`;
 
   return `### SYSTEM PROMPT: AI STUDY COMPANION GENERATOR
@@ -212,13 +212,29 @@ function MarkdownRenderer({ text }) {
     // Section headers — skip, already handled
     if (line.startsWith('#### SECTION 1:')) return;
 
+    if (line.match(/^#\s+/)) {
+      flushList(i);
+      inKeyTerms = false;
+      elements.push(
+        <h1 className="study-note-h1" key={i}>{line.replace(/^#\s+/, '')}</h1>
+      );
+      return;
+    }
+
+    if (line.match(/^##\s+/)) {
+      flushList(i);
+      inKeyTerms = false;
+      elements.push(
+        <h2 className="study-note-h2" key={i}>{line.replace(/^##\s+/, '')}</h2>
+      );
+      return;
+    }
+
     if (line.match(/^###\s+/)) {
       flushList(i);
       inKeyTerms = false;
       elements.push(
-        <h3 key={i} style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '20px 0 8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px' }}>
-          {line.replace(/^###\s+/, '')}
-        </h3>
+        <h3 className="study-note-h3" key={i}>{line.replace(/^###\s+/, '')}</h3>
       );
       return;
     }
@@ -227,9 +243,15 @@ function MarkdownRenderer({ text }) {
       flushList(i);
       inKeyTerms = false;
       elements.push(
-        <h4 key={i} style={{ fontSize: '0.9rem', fontWeight: 600, color: '#818cf8', margin: '14px 0 6px' }}>
-          {line.replace(/^####\s+/, '')}
-        </h4>
+        <h4 className="study-note-h4" key={i}>{line.replace(/^####\s+/, '')}</h4>
+      );
+      return;
+    }
+
+    if (line.match(/^>\s*/)) {
+      flushList(i);
+      elements.push(
+        <aside className="study-note-callout" key={i} dangerouslySetInnerHTML={{ __html: bold(line.replace(/^>\s*/, '')) }} />
       );
       return;
     }
@@ -282,7 +304,7 @@ function MarkdownRenderer({ text }) {
       elements.push(
         <div key={`kt-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 16px' }}>
           {keyTermBuffer.map((kt, ki) => (
-            <div key={ki} style={{
+            <div className="study-note-key-term" key={ki} style={{
               display: 'flex', gap: '10px', alignItems: 'flex-start',
               padding: '10px 14px', borderRadius: '10px',
               background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)'
@@ -323,7 +345,7 @@ function MarkdownRenderer({ text }) {
     elements.push(
       <div key="kt-final" style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 16px' }}>
         {keyTermBuffer.map((kt, ki) => (
-          <div key={ki} style={{
+          <div className="study-note-key-term" key={ki} style={{
             display: 'flex', gap: '10px', alignItems: 'flex-start',
             padding: '10px 14px', borderRadius: '10px',
             background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)'
@@ -341,7 +363,7 @@ function MarkdownRenderer({ text }) {
   }
 
   flushList('final');
-  return <div>{elements}</div>;
+  return <div className="study-notes-markdown">{elements}</div>;
 }
 
 // ─── Quiz Component ───────────────────────────────────────────────────────────
@@ -898,11 +920,7 @@ export default function StudyCompanion({ userData, setUserData }) {
             <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
               Note Length
             </label>
-            <div style={{
-              display: 'flex', gap: '0',
-              background: 'var(--bg-main)', borderRadius: '10px', padding: '3px',
-              border: '1px solid var(--border-color)'
-            }}>
+            <div className="notes-length-toggle" role="group" aria-label="Note length">
               {[
                 { id: false, label: 'Short Notes', icon: AlignLeft },
                 { id: true, label: 'Long Notes', icon: FileText },
@@ -910,15 +928,13 @@ export default function StudyCompanion({ userData, setUserData }) {
                 const Icon = m.icon;
                 const active = isLongNotes === m.id;
                 return (
-                  <button key={String(m.id)} onClick={() => setIsLongNotes(m.id)} style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    padding: '8px 12px', borderRadius: '8px', border: 'none',
-                    background: active ? 'var(--bg-card)' : 'transparent',
-                    color: active ? '#818cf8' : 'var(--text-muted)',
-                    fontSize: '0.82rem', fontWeight: active ? 700 : 400,
-                    cursor: 'pointer', transition: 'all 0.2s ease',
-                    boxShadow: active ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'
-                  }}>
+                  <button
+                    key={String(m.id)}
+                    type="button"
+                    className={`notes-length-toggle-button${active ? ' active' : ''}`}
+                    onClick={() => setIsLongNotes(m.id)}
+                    aria-pressed={active}
+                  >
                     <Icon size={13} /> {m.label}
                   </button>
                 );
@@ -1014,7 +1030,7 @@ export default function StudyCompanion({ userData, setUserData }) {
               </div>
 
               {/* Notes body */}
-              <div id="study-notes-content" style={{ padding: '20px 24px' }}>
+              <div id="study-notes-content" className="study-notes-content" style={{ padding: '20px 24px' }}>
                 {isGenerating ? (
                   <div>
                     <Skeleton height={20} width="60%" mb={12} radius={6} />
