@@ -491,22 +491,22 @@ body {
 
   .main-content {
     padding: 16px 20px !important;
-    /* Add bottom padding for the mobile bottom tab bar */
-    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+    /* Keep the end of each page above the fixed mobile bottom navigation. */
+    padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important;
   }
 }
 
 @media (max-width: 768px) {
   .main-content {
     padding: 12px 12px !important;
-    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+    padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important;
   }
 }
 
 @media (max-width: 480px) {
   .main-content {
     padding: 10px 10px !important;
-    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+    padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important;
   }
 }
 
