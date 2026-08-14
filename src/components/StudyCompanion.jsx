@@ -648,6 +648,7 @@ export default function StudyCompanion({ userData, setUserData }) {
   const [copied, setCopied]           = useState(false);
   const [notesCollapsed, setNotesCollapsed] = useState(false);
   const [isLongNotes, setIsLongNotes] = useState(false);
+  const [shouldAutoDownloadPdf, setShouldAutoDownloadPdf] = useState(false);
 
   const hasApiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -660,6 +661,7 @@ export default function StudyCompanion({ userData, setUserData }) {
     setError('');
     setIsGenerating(true);
     setStudyKit(null);
+    setShouldAutoDownloadPdf(true);
 
     try {
       const prompt = buildStudyPrompt(content, topic, isLongNotes);
@@ -698,6 +700,7 @@ export default function StudyCompanion({ userData, setUserData }) {
         });
       }
     } catch (e) {
+      setShouldAutoDownloadPdf(false);
       setError('Something went wrong. Please try again.');
     } finally {
       setIsGenerating(false);
@@ -793,6 +796,18 @@ export default function StudyCompanion({ userData, setUserData }) {
       printSurface.remove();
     }
   }, [studyKit, topic]);
+
+  // Each completed Study Kit automatically includes its polished A4 notes PDF.
+  useEffect(() => {
+    if (!shouldAutoDownloadPdf || isGenerating || !studyKit?.notes) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      setShouldAutoDownloadPdf(false);
+      handleDownloadPDF();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [shouldAutoDownloadPdf, isGenerating, studyKit, handleDownloadPDF]);
 
   const charCount = transcript.length;
 
