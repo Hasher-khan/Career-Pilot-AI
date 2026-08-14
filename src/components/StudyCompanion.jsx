@@ -716,33 +716,83 @@ export default function StudyCompanion({ userData, setUserData }) {
     if (!studyKit?.notes) return;
     const element = document.getElementById('study-notes-content');
     if (!element) return;
-    
-    // Optional: temporarily force light background for PDF if user is in dark mode
-    const originalBg = element.style.background;
-    element.style.background = '#ffffff';
-    element.style.color = '#000000'; // Make sure text is visible on light background
+
+    // Capture a dedicated print surface instead of the dark on-screen card.
+    // This keeps every export consistently styled and allows long notes to span pages.
+    const printSurface = document.createElement('div');
+    const printHeader = document.createElement('div');
+    const notesClone = element.cloneNode(true);
+    const escapedTopic = (topic.trim() || 'Learning Notes')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    printSurface.setAttribute('aria-hidden', 'true');
+    Object.assign(printSurface.style, {
+      position: 'fixed', left: '-10000px', top: '0', width: '794px',
+      padding: '48px 54px 42px', background: '#ffffff', color: '#172033',
+      fontFamily: 'Arial, Helvetica, sans-serif', boxSizing: 'border-box',
+      '--text-main': '#172033', '--text-muted': '#475569', '--text-subtle': '#64748b',
+      '--border-color': '#dbe3f0', '--bg-card': '#ffffff', '--bg-input': '#f8fafc'
+    });
+    printHeader.innerHTML = `
+      <div style="height:5px;border-radius:6px;background:linear-gradient(90deg,#4f46e5,#7c3aed);margin-bottom:24px"></div>
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.6px;color:#172033">AI Study Kit</div>
+      <div style="margin-top:7px;font-size:13px;color:#64748b">${escapedTopic} - Comprehensive study notes</div>
+      <div style="margin:22px 0 28px;border-bottom:1px solid #dbe3f0"></div>
+    `;
+    notesClone.removeAttribute('id');
+    notesClone.style.padding = '0';
+    notesClone.style.background = 'transparent';
+    printSurface.append(printHeader, notesClone);
+    document.body.appendChild(printSurface);
 
     try {
-      const canvas = await html2canvas(element, { 
-        scale: 2, 
-        useCORS: true, 
-        backgroundColor: '#ffffff' 
+      const canvas = await html2canvas(printSurface, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
       });
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const marginX = 15;
+      const topMargin = 24;
+      const footerSpace = 14;
+      const contentWidth = pdfWidth - marginX * 2;
+      const contentHeight = pdfHeight - topMargin - footerSpace;
+      const sourceSliceHeight = Math.floor(canvas.width * (contentHeight / contentWidth));
+      let sourceY = 0;
+      let page = 0;
+
+      while (sourceY < canvas.height) {
+        const sliceHeight = Math.min(sourceSliceHeight, canvas.height - sourceY);
+        const slice = document.createElement('canvas');
+        slice.width = canvas.width;
+        slice.height = sliceHeight;
+        slice.getContext('2d').drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+
+        if (page > 0) pdf.addPage();
+        pdf.setFillColor(79, 70, 229);
+        pdf.rect(0, 0, pdfWidth, 5, 'F');
+        pdf.setTextColor(71, 85, 105);
+        pdf.setFontSize(8);
+        pdf.text('AI STUDY KIT', marginX, 15);
+        pdf.text(`Page ${page + 1}`, pdfWidth - marginX, pdfHeight - 7, { align: 'right' });
+        pdf.addImage(slice.toDataURL('image/png'), 'PNG', marginX, topMargin, contentWidth, sliceHeight * contentWidth / canvas.width);
+
+        sourceY += sliceHeight;
+        page += 1;
+      }
       pdf.save('AI-Study-Kit.pdf');
     } catch (err) {
       console.error('PDF generation failed:', err);
     } finally {
-      // Restore original styles
-      element.style.background = originalBg;
-      element.style.color = ''; 
+      printSurface.remove();
     }
-  }, [studyKit]);
+  }, [studyKit, topic]);
 
   const charCount = transcript.length;
 
