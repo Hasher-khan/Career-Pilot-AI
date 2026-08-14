@@ -6,6 +6,7 @@ import {
   AlertCircle, Loader, ChevronDown, ChevronUp, Globe, Hash
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // ─── Gemini API Call ─────────────────────────────────────────────────────────
 async function callGeminiAI(prompt) {
@@ -654,15 +655,36 @@ export default function StudyCompanion({ userData, setUserData }) {
     setTimeout(() => setCopied(false), 2000);
   }, [studyKit]);
 
-  const handleDownloadPDF = useCallback(() => {
+  const handleDownloadPDF = useCallback(async () => {
     if (!studyKit?.notes) return;
-    const doc = new jsPDF();
-    const lines = doc.splitTextToSize(studyKit.notes.replace(/\*\*/g, '').replace(/#{1,4}\s/g, ''), 180);
-    doc.setFontSize(16);
-    doc.text('AI Study Kit', 15, 20);
-    doc.setFontSize(10);
-    doc.text(lines, 15, 35);
-    doc.save('study-kit.pdf');
+    const element = document.getElementById('study-notes-content');
+    if (!element) return;
+    
+    // Optional: temporarily force light background for PDF if user is in dark mode
+    const originalBg = element.style.background;
+    element.style.background = '#ffffff';
+    element.style.color = '#000000'; // Make sure text is visible on light background
+
+    try {
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#ffffff' 
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('AI-Study-Kit.pdf');
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+    } finally {
+      // Restore original styles
+      element.style.background = originalBg;
+      element.style.color = ''; 
+    }
   }, [studyKit]);
 
   const charCount = transcript.length;
@@ -836,23 +858,37 @@ export default function StudyCompanion({ userData, setUserData }) {
             </div>
           </div>
 
-          {/* Detailed/Long Notes Checkbox */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <input
-              type="checkbox"
-              id="long-notes-toggle"
-              checked={isLongNotes}
-              onChange={e => setIsLongNotes(e.target.checked)}
-              style={{
-                width: '16px',
-                height: '16px',
-                accentColor: '#7c3aed',
-                cursor: 'pointer'
-              }}
-            />
-            <label htmlFor="long-notes-toggle" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none' }}>
-              Enable Detailed/Long Notes
+          {/* Note Length Toggle */}
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
+              Note Length
             </label>
+            <div style={{
+              display: 'flex', gap: '0',
+              background: 'var(--bg-main)', borderRadius: '10px', padding: '3px',
+              border: '1px solid var(--border-color)'
+            }}>
+              {[
+                { id: false, label: 'Short Notes', icon: AlignLeft },
+                { id: true, label: 'Long Notes', icon: FileText },
+              ].map(m => {
+                const Icon = m.icon;
+                const active = isLongNotes === m.id;
+                return (
+                  <button key={String(m.id)} onClick={() => setIsLongNotes(m.id)} style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    padding: '8px 12px', borderRadius: '8px', border: 'none',
+                    background: active ? 'var(--bg-card)' : 'transparent',
+                    color: active ? '#818cf8' : 'var(--text-muted)',
+                    fontSize: '0.82rem', fontWeight: active ? 700 : 400,
+                    cursor: 'pointer', transition: 'all 0.2s ease',
+                    boxShadow: active ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'
+                  }}>
+                    <Icon size={13} /> {m.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Error */}
@@ -943,7 +979,7 @@ export default function StudyCompanion({ userData, setUserData }) {
               </div>
 
               {/* Notes body */}
-              <div style={{ padding: '20px 24px' }}>
+              <div id="study-notes-content" style={{ padding: '20px 24px' }}>
                 {isGenerating ? (
                   <div>
                     <Skeleton height={20} width="60%" mb={12} radius={6} />

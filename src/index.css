@@ -743,6 +743,11 @@ body {
   .sidebar-container {
     /* Sidebar still accessible via hamburger but bottom nav is primary */
   }
+
+  .main-content {
+    /* Prevent content from being obscured by mobile bottom nav */
+    padding-bottom: calc(85px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ── Resume Paper Mobile Fixes ─────────────────────────────────────────────── */
