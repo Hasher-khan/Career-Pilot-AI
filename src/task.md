@@ -1,0 +1,6 @@
+- `[x]` Update Sidebar.jsx navigation labels and icons
+- `[x]` Update App.jsx navigation and bottom bar
+- `[x]` Update Header.jsx active tab title
+- `[x]` Update StudyCompanion.jsx to implement Transcript Generator and remove PDF download
+- `[x]` Verify changes compile and run correctly
+- `[ ]` Update QuizCompanion.jsx to add quiz length slider (1-35) and upgrade to gemini-2.5-pro model

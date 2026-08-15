@@ -15,13 +15,13 @@ async function callGeminiAI(prompt) {
   }
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
         })
       }
     );
@@ -34,10 +34,10 @@ async function callGeminiAI(prompt) {
 }
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
-function buildQuizPrompt(content, topic) {
+function buildQuizPrompt(content, topic, numQuestions = 10) {
   return `### SYSTEM PROMPT: AI INTERACTIVE QUIZ GENERATOR
 
-You are an expert educational AI assistant. Your task is to process the provided video transcript or educational content and generate a 10-question interactive quiz based directly on the content.
+You are an expert educational AI assistant. Your task is to process the provided video transcript or educational content and generate a ${numQuestions}-question interactive quiz based directly on the content.
 ${topic ? `\nThe topic/subject context is: ${topic}\n` : ''}
 ---
 
@@ -47,11 +47,11 @@ Return the output formatted strictly according to the following structure:
 
 #### SECTION 2: INTERACTIVE QUIZZES
 
-Generate a 10-question interactive quiz based directly on the provided content. Include a mix of Multiple-Choice Questions (MCQs) and True/False Questions.
+Generate a ${numQuestions}-question interactive quiz based directly on the provided content. Include a mix of Multiple-Choice Questions (MCQs) and True/False Questions.
 
 For each question, follow this exact structure:
 
-* **Question [X]/10**: [Insert question text]
+* **Question [X]/${numQuestions}**: [Insert question text]
   * A) [Option 1]
   * B) [Option 2]
   * C) [Option 3]
@@ -95,7 +95,7 @@ function parseAIResponse(text) {
 
   // Parse quiz questions
   const quiz = [];
-  const questionBlocks = text.split(/\*\*Question \d+\/10\*\*:/g).slice(1);
+  const questionBlocks = text.split(/\*\*Question \d+\/\d+\*\*:/g).slice(1);
   
   if (questionBlocks.length === 0) {
     // Try simpler fallback split if exact match fails
@@ -393,6 +393,8 @@ function InteractiveQuiz({ questions }) {
             cursor: 'pointer', boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
             transition: 'all 0.2s ease'
           }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(99,102,241,0.45)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(99,102,241,0.3)'; }}
         >
           {currentQ < questions.length - 1 ? (
             <><ChevronRight size={16} /> Next Question</>
@@ -411,6 +413,7 @@ export default function QuizCompanion({ userData, setUserData }) {
   const [transcript, setTranscript]   = useState('');
   const [urlInput, setUrlInput]       = useState('');
   const [topic, setTopic]             = useState('');
+  const [quizLength, setQuizLength]   = useState(10);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError]             = useState('');
   const [quizList, setQuizList]       = useState(null); // array of questions
@@ -428,7 +431,7 @@ export default function QuizCompanion({ userData, setUserData }) {
     setQuizList(null);
 
     try {
-      const prompt = buildQuizPrompt(content, topic);
+      const prompt = buildQuizPrompt(content, topic, quizLength);
       const response = await callGeminiAI(prompt);
 
       let parsed;
@@ -437,7 +440,7 @@ export default function QuizCompanion({ userData, setUserData }) {
         setQuizList(parsed);
       } else {
         // Demo mode fallback
-        setQuizList(DEMO_QUIZ);
+        setQuizList(DEMO_QUIZ.slice(0, quizLength));
         if (!hasApiKey) {
           setError('demo');
         }
@@ -608,6 +611,42 @@ export default function QuizCompanion({ userData, setUserData }) {
                   fontFamily: 'inherit', boxSizing: 'border-box'
                 }}
               />
+            </div>
+          </div>
+
+          {/* Quiz Length Selector */}
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+              Number of Questions ({quizLength})
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="range"
+                min="1"
+                max="35"
+                value={quizLength}
+                onChange={e => setQuizLength(Number(e.target.value))}
+                style={{
+                  flex: 1,
+                  accentColor: '#ec4899',
+                  height: '6px',
+                  borderRadius: '3px',
+                  background: 'var(--border-color)',
+                  cursor: 'pointer'
+                }}
+              />
+              <span style={{
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: '#ec4899',
+                background: 'rgba(236,72,153,0.1)',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                minWidth: '24px',
+                textAlign: 'center'
+              }}>
+                {quizLength}
+              </span>
             </div>
           </div>
 
