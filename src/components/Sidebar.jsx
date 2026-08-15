@@ -14,7 +14,8 @@ import {
   Zap,
   ShieldCheck,
   BookOpen,
-  Brain
+  Brain,
+  AlignLeft
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUser, onSignOut, isOpen, onClose }) {
@@ -26,7 +27,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
     { id: 'cover-letter',     label: 'Cover Letter',          icon: Send },
     { id: 'email-generator',  label: 'AI Email Generator',    icon: Mail,        badge: 'New' },
     { id: 'ai-cv-maker',      label: 'AI CV Maker',           icon: FileEdit,    badge: 'AI' },
-    { id: 'study-companion',  label: 'AI Study Companion',    icon: BookOpen,    badge: 'Student' },
+    { id: 'study-companion',  label: 'Transcript Generator',  icon: AlignLeft,   badge: 'AI' },
     { id: 'ai-quizzes',       label: 'AI Quizzes',            icon: Brain,       badge: 'Quiz' },
     { id: 'settings',         label: 'Profile & Settings',    icon: Settings },
     { id: 'admin-panel',      label: 'Admin Panel',           icon: ShieldCheck, badge: 'Admin' },

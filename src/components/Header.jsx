@@ -20,7 +20,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
     'email-generator':'AI Email Generator',
     'ai-cv-maker':    'AI CV Maker',
     'settings':       'Profile & Settings',
-    'study-companion':'AI Study Companion',
+    'study-companion':'Transcript Generator',
     'ai-quizzes':      'AI Practice Quizzes'
   };
 

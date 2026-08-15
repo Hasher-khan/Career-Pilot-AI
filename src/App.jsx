@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { LayoutDashboard, FileText, Send, FileEdit, Settings, BookOpen, Brain } from 'lucide-react';
+import { LayoutDashboard, FileText, Send, FileEdit, Settings, BookOpen, Brain, AlignLeft } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardOverview from './components/DashboardOverview';
@@ -336,7 +336,7 @@ export default function App() {
           { id: 'dashboard',      label: 'Home',    icon: LayoutDashboard },
           { id: 'resume-builder', label: 'Resume',  icon: FileText },
           { id: 'cover-letter',   label: 'Letter',  icon: Send },
-          { id: 'study-companion',label: 'Study',   icon: BookOpen },
+          { id: 'study-companion',label: 'Transcript',icon: AlignLeft },
           { id: 'ai-quizzes',     label: 'Quizzes', icon: Brain },
           { id: 'settings',       label: 'Profile', icon: Settings },
         ].map(item => {

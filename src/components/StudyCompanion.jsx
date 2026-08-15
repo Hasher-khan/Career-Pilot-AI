@@ -1,12 +1,7 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  BookOpen, Sparkles, Copy, Check, RefreshCw, ChevronRight,
-  ChevronLeft, FileText, Link2, Tag, Zap, Award, Brain,
-  CheckCircle, XCircle, RotateCcw, Download, AlignLeft,
-  AlertCircle, Loader, ChevronDown, ChevronUp, Globe, Hash
+  Sparkles, Copy, Check, AlignLeft, AlertCircle, Loader, Globe, Hash, Link2, Zap
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 
 // ─── Gemini API Call ─────────────────────────────────────────────────────────
 async function callGeminiAI(prompt, sourceUrl = '') {
@@ -23,7 +18,7 @@ async function callGeminiAI(prompt, sourceUrl = '') {
 
   const body = {
     systemInstruction: {
-      parts: [{ text: 'Generate an academic Question & Answer study guide. Every answer must use complete paragraphs under Markdown question headings. Never use bullet points or outline lists in answers.' }]
+      parts: [{ text: 'Generate a clean, professional, and well-structured transcript from the content provided. Fix spelling and grammar issues, format it into clear paragraphs with descriptive headings/subheadings, and optional logical timestamps if helpful. Do not add questions, quizzes, or extra commentary.' }]
     },
     contents: [{ parts }],
     generationConfig: { temperature: 0.45, maxOutputTokens: 8192 }
@@ -48,185 +43,46 @@ async function callGeminiAI(prompt, sourceUrl = '') {
     throw new Error(json?.error?.message || `The AI service returned an error (${res.status}).`);
   }
   const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('The AI service did not return study content. Please try again.');
+  if (!text) throw new Error('The AI service did not return transcript content. Please try again.');
   return text;
 }
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
-function buildStudyPrompt(content, topic, isLongNotes) {
-  const lengthInstruction = isLongNotes
-    ? `Generate extremely DETAILED, COMPREHENSIVE, and IN-DEPTH notes. Explain concepts thoroughly with examples, context, connections, and clear explanations under every heading. Use one # title, ## for major sections, and ### for subtopics. Every heading MUST be followed by one or more complete, well-written paragraphs. Do not use bullet lists, cards, fragments, or one-line answers.`
-    : `Generate CONCISE, DIRECT, and BRIEF notes. Use clear headings followed by short complete paragraphs. Do not use bullet lists, cards, fragments, or one-line answers.`;
+function buildTranscriptPrompt(content, topic) {
+  return `You are a professional AI transcription and formatting assistant.
+Your task is to take the provided text (which is a raw transcript, notes, or educational content) and generate a polished, beautifully structured, and highly readable transcript.
 
-  return `# AI Study Kit: Question & Answer Guide
+${topic ? `SUBJECT / TOPIC: ${topic}\n` : ''}
 
-## Section 1: Short Answer Questions
-Provide 3 to 5 foundational questions based only on the supplied source. Each answer must be one or two complete, cohesive paragraphs.
-
-### Q1: [Clear question]
-**Answer:** [A direct paragraph-style explanation with full sentences.]
-
-## Section 2: Comprehensive Long Answer Questions
-Provide 2 to 4 analytical questions about core concepts, mechanisms, or real-world applications. Each answer must be two to four full, well-structured paragraphs.
-
-### Q1: [Comprehensive question]
-**Answer:**
-[Paragraph 1: Core definition and primary explanation.]
-
-[Paragraph 2: Detailed mechanism, context, or breakdown.]
-
-[Paragraph 3: Implications, advantages, or practical application.]
-
-${topic ? `SUBJECT / TOPIC: ${topic}\n` : ''}INSTRUCTIONS:
-- Maintain an academic, professional, and accessible tone.
-- Do not use bullet points, summaries, outline lists, cards, fragments, or one-line answers.
-- Every answer must be written in complete, cohesive, well-structured paragraphs with high information density.
-- Use clean Markdown headings exactly as shown so the Q&A renders smoothly in the app and PDF.
-
-LENGTH PREFERENCE:
-${lengthInstruction}
+INSTRUCTIONS:
+1. Provide a professional title at the top of the transcript.
+2. Organise the transcript into logical sections or chapters with clear headings.
+3. Clean up the language (remove verbal filler words like "um", "ah", "like", "you know"), correct syntax/grammar errors, and ensure the sentences are fully readable and flow smoothly.
+4. Keep the content accurate to the source material; do not invent details.
+5. Format the transcript using paragraphs and section headers so it is easy to read and review.
+6. Do NOT generate quizzes, notes summaries, outlines, or Q&A structures. Focus strictly on a clean, professional transcript.
 
 SOURCE CONTENT:
-${content}`;
-
-  return `### SYSTEM PROMPT: AI STUDY COMPANION GENERATOR
-
-You are an expert educational AI assistant. Your task is to process the provided video transcript or educational content and generate a complete Study Kit containing two main components: AI Notes & Summary and Interactive Quizzes.
-${topic ? `\nThe topic/subject context is: ${topic}\n` : ''}
-
----
-### LENGTH REQUIREMENT:
-${lengthInstruction}
----
-
-### REQUIRED OUTPUT FORMAT
-
-Return the output formatted strictly according to the following structures:
-
-#### SECTION 1: AI NOTES & SUMMARY
-
-1. **Executive Summary**: Provide a high-level overview of the video's main concepts and key takeaways in 3–5 sentences.
-2. **Key Terms & Vocabulary**: Extract crucial keywords and define them clearly based on the context.
-3. **Structured Notes**:
-   - Organize content into structured headings and subheadings.
-   - Use concise, bulleted points to break down concepts.
-   - Highlight essential **Keywords** in bold.
-
----
-
-#### SECTION 2: INTERACTIVE QUIZZES
-
-Generate a 10-question interactive quiz based directly on the provided content. Include a mix of Multiple-Choice Questions (MCQs) and True/False Questions.
-
-For each question, follow this exact structure:
-
-* **Question [X]/10**: [Insert question text]
-  * A) [Option 1]
-  * B) [Option 2]
-  * C) [Option 3]
-  * D) [Option 4]
-  * **Correct Answer**: [Specify option letter, e.g., B]
-  * **Explanation**: [Provide a brief 1-2 sentence explanation of why this is correct]
-
-For True/False questions, use only A) True and B) False as options.
-
----
-
-### INSTRUCTIONS & RULES:
-- Keep the language accurate, engaging, and clear for learners.
-- Ensure all quiz questions are directly answerable using information present in the transcript/content.
-- Maintain formatting hierarchy so it can be parsed cleanly by frontend markdown components.
-
----
-
-### CONTENT TO PROCESS:
-
 ${content}`;
 }
 
 // ─── Demo fallback data ────────────────────────────────────────────────────────
-const DEMO_NOTES = `#### SECTION 1: AI NOTES & SUMMARY
+const DEMO_TRANSCRIPT = `### AI & Future of Software Engineering: Professional Transcript
 
-1. **Executive Summary**: This content covers fundamental concepts in computer science and software engineering. The material explores key programming paradigms, data structures, and algorithmic thinking. Students will gain a solid understanding of how modern software systems are designed and optimized. The content bridges theoretical foundations with practical application patterns. These concepts form the backbone of professional software development.
+#### Section 1: Introduction to Modern Software Paradigms
+Welcome back, everyone. Today we are going to explore the intersection of artificial intelligence and software development, and how these forces are shaping the future of software engineering. Over the past decade, programming paradigms have evolved significantly. We moved from purely manual code construction to leveraging automated systems, and now, to collaborating with advanced AI systems.
 
-2. **Key Terms & Vocabulary**:
-- **Algorithm**: A step-by-step procedure for solving a problem or accomplishing a task efficiently.
-- **Data Structure**: A way of organizing and storing data to enable efficient access and modification.
-- **Abstraction**: The process of hiding complex implementation details while exposing only essential features.
-- **Recursion**: A programming technique where a function calls itself to solve smaller instances of a problem.
-- **Complexity**: A measure of how resource requirements (time/space) grow as input size increases.
+Understanding these changes is crucial for any engineer aiming to design robust and scalable applications. Artificial intelligence is not replacing developers; rather, it is raising the level of abstraction, enabling us to focus on system design, architecture, and high-level logic rather than boilerplate code.
 
-3. **Structured Notes**:
+#### Section 2: Core Algorithmic Thinking and AI Integration
+When we think about algorithms, we are looking at step-by-step procedures for solving complex problems. Algorithms and data structures remain the foundation of computer science. Even when AI models generate code blocks, the underlying architecture must support efficient data access and memory management.
 
-### Core Programming Concepts
-#### Algorithmic Thinking
-- Break problems into smaller, manageable sub-problems
-- Identify patterns and reusable solutions
-- Analyze **time complexity** and **space complexity**
+For example, choosing a hash table for constant-time lookup or a graph structure for complex relationships is a design decision that requires human analytical thinking. The integration of AI into this workflow means that we can prototype algorithms much faster, test edge cases automatically, and refine complexity metrics on the fly.
 
-#### Data Structures
-- **Arrays**: Fixed-size, indexed collections for fast random access
-- **Linked Lists**: Dynamic size, efficient insertion/deletion
-- **Hash Tables**: O(1) average lookup via key hashing
-- **Trees**: Hierarchical structures ideal for sorted data
+#### Section 3: Design Principles and Maintainable Systems
+Maintaining large-scale systems requires strict adherence to design principles. Concepts like DRY—Don't Repeat Yourself—and the SOLID design principles are more relevant than ever. When AI models assist in generating code, the potential for code duplication actually increases if not monitored carefully.
 
-### Software Design Principles
-- **DRY** (Don't Repeat Yourself): Reduce code duplication
-- **SOLID**: Five principles for maintainable object-oriented design
-- **Separation of Concerns**: Each module handles one responsibility`;
-
-const DEMO_QUIZ = [
-  { q: 'What is the primary purpose of an algorithm in computer science?', opts: ['A) To store data efficiently', 'B) To provide a step-by-step procedure for solving a problem', 'C) To define the user interface', 'D) To manage memory allocation'], correct: 'B', explanation: 'An algorithm is a defined sequence of steps designed to solve a specific problem or accomplish a task, forming the foundation of all computational solutions.' },
-  { q: 'Which data structure provides O(1) average time complexity for lookup operations?', opts: ['A) Linked List', 'B) Binary Tree', 'C) Hash Table', 'D) Stack'], correct: 'C', explanation: 'Hash tables use a hashing function to map keys to indices, enabling constant-time average lookup regardless of dataset size.' },
-  { q: 'True or False: Recursion is a technique where a function calls itself to solve smaller instances of the same problem.', opts: ['A) True', 'B) False'], correct: 'A', explanation: 'Recursion involves a function calling itself with modified parameters until it reaches a base case, effectively solving complex problems by breaking them into simpler sub-problems.' },
-  { q: 'What does the "DRY" principle stand for in software development?', opts: ['A) Design Reliable Yields', 'B) Don\'t Repeat Yourself', 'C) Dynamic Runtime Yield', 'D) Declarative Runtime Yield'], correct: 'B', explanation: 'DRY (Don\'t Repeat Yourself) is a principle aimed at reducing code duplication by abstracting repeated logic into reusable functions or modules.' },
-  { q: 'Which of the following best describes "abstraction" in programming?', opts: ['A) Writing code in assembly language', 'B) Hiding complex details while exposing essential features', 'C) Optimizing memory usage', 'D) Connecting to external databases'], correct: 'B', explanation: 'Abstraction simplifies complex systems by hiding implementation details, allowing developers to work at higher levels of conceptual thinking.' },
-  { q: 'True or False: Arrays in most programming languages have dynamic size by default.', opts: ['A) True', 'B) False'], correct: 'B', explanation: 'Traditional arrays are fixed-size structures. Dynamic arrays or lists are separate data structures that grow/shrink as needed.' },
-  { q: 'What does "time complexity" measure in algorithm analysis?', opts: ['A) The actual execution time in seconds', 'B) How resource requirements grow as input size increases', 'C) The number of lines of code', 'D) Memory used during execution'], correct: 'B', explanation: 'Time complexity describes how the number of operations scales relative to input size, typically expressed using Big O notation.' },
-  { q: 'Which SOLID principle states that each class should have only one reason to change?', opts: ['A) Open/Closed Principle', 'B) Liskov Substitution', 'C) Single Responsibility Principle', 'D) Interface Segregation'], correct: 'C', explanation: 'The Single Responsibility Principle dictates that a class should encapsulate only one concern, making it easier to maintain and test.' },
-  { q: 'What is the key advantage of Linked Lists over Arrays?', opts: ['A) Faster random access', 'B) Less memory usage', 'C) Efficient insertion and deletion', 'D) Better cache performance'], correct: 'C', explanation: 'Linked lists allow O(1) insertion and deletion at known positions since only pointers need updating, unlike arrays which require shifting elements.' },
-  { q: 'True or False: The "Separation of Concerns" principle means each module should handle multiple responsibilities.', opts: ['A) True', 'B) False'], correct: 'B', explanation: 'Separation of Concerns means each module/component should handle exactly one concern or responsibility, improving modularity and maintainability.' },
-];
-
-// ─── Parse AI response into notes + quiz ─────────────────────────────────────
-
-function parseAIResponse(text) {
-  if (!text) return { notes: null, quiz: [] };
-
-  const splitIdx = text.indexOf('#### SECTION 2:');
-  const notesRaw = splitIdx > -1 ? text.substring(0, splitIdx).trim() : text.trim();
-  const quizRaw  = splitIdx > -1 ? text.substring(splitIdx).trim() : '';
-
-  // Parse quiz questions
-  const quiz = [];
-  if (quizRaw) {
-    const questionBlocks = quizRaw.split(/\*\*Question \d+\/10\*\*:/g).slice(1);
-    questionBlocks.forEach((block, idx) => {
-      const lines = block.trim().split('\n').map(l => l.trim()).filter(Boolean);
-      const q = lines[0]?.replace(/^\*+/, '').trim() || `Question ${idx + 1}`;
-      const opts = [];
-      let correct = '';
-      let explanation = '';
-
-      lines.forEach(line => {
-        const optMatch = line.match(/^\*?\s*([A-D])\)\s+(.+)/);
-        if (optMatch) opts.push(`${optMatch[1]}) ${optMatch[2]}`);
-
-        const corrMatch = line.match(/\*\*Correct Answer\*\*:?\s*([A-D])/i);
-        if (corrMatch) correct = corrMatch[1].toUpperCase();
-
-        const expMatch = line.match(/\*\*Explanation\*\*:?\s*(.+)/i);
-        if (expMatch) explanation = expMatch[1];
-      });
-
-      if (q && opts.length >= 2) {
-        quiz.push({ q, opts, correct, explanation });
-      }
-    });
-  }
-
-  return { notes: notesRaw, quiz };
-}
+A professional engineer must guide the AI assistant, ensuring that the generated components adhere to clean separation of concerns, modular design, and testability. By maintaining high design standards, we ensure that software remains maintainable, scalable, and easy to refactor as business needs evolve.`;
 
 // ─── Simple Markdown Renderer ─────────────────────────────────────────────────
 function MarkdownRenderer({ text }) {
@@ -234,8 +90,6 @@ function MarkdownRenderer({ text }) {
 
   const lines = text.split('\n');
   const elements = [];
-  let keyTermBuffer = [];
-  let inKeyTerms = false;
   let listBuffer = [];
   let inList = false;
 
@@ -257,41 +111,34 @@ function MarkdownRenderer({ text }) {
   lines.forEach((line, i) => {
     const bold = (t) => t.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-main);font-weight:600">$1</strong>');
 
-    // Section headers — skip, already handled
-    if (line.startsWith('#### SECTION 1:')) return;
-
     if (line.match(/^#\s+/)) {
       flushList(i);
-      inKeyTerms = false;
       elements.push(
-        <h1 className="study-note-h1" key={i}>{line.replace(/^#\s+/, '')}</h1>
+        <h1 className="study-note-h1" key={i} style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '24px', marginBottom: '12px' }}>{line.replace(/^#\s+/, '')}</h1>
       );
       return;
     }
 
     if (line.match(/^##\s+/)) {
       flushList(i);
-      inKeyTerms = false;
       elements.push(
-        <h2 className="study-note-h2" key={i}>{line.replace(/^##\s+/, '')}</h2>
+        <h2 className="study-note-h2" key={i} style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '20px', marginBottom: '10px' }}>{line.replace(/^##\s+/, '')}</h2>
       );
       return;
     }
 
     if (line.match(/^###\s+/)) {
       flushList(i);
-      inKeyTerms = false;
       elements.push(
-        <h3 className="study-note-h3" key={i}>{line.replace(/^###\s+/, '')}</h3>
+        <h3 className="study-note-h3" key={i} style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '16px', marginBottom: '8px' }}>{line.replace(/^###\s+/, '')}</h3>
       );
       return;
     }
 
     if (line.match(/^####\s+/)) {
       flushList(i);
-      inKeyTerms = false;
       elements.push(
-        <h4 className="study-note-h4" key={i}>{line.replace(/^####\s+/, '')}</h4>
+        <h4 className="study-note-h4" key={i} style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)', marginTop: '14px', marginBottom: '6px' }}>{line.replace(/^####\s+/, '')}</h4>
       );
       return;
     }
@@ -299,76 +146,9 @@ function MarkdownRenderer({ text }) {
     if (line.match(/^>\s*/)) {
       flushList(i);
       elements.push(
-        <aside className="study-note-callout" key={i} dangerouslySetInnerHTML={{ __html: bold(line.replace(/^>\s*/, '')) }} />
+        <aside className="study-note-callout" key={i} style={{ padding: '12px 16px', borderLeft: '4px solid var(--accent-primary)', background: 'var(--bg-main)', margin: '16px 0', borderRadius: '0 8px 8px 0' }} dangerouslySetInnerHTML={{ __html: bold(line.replace(/^>\s*/, '')) }} />
       );
       return;
-    }
-
-    // Numbered intro sections
-    if (line.match(/^\d+\.\s+\*\*Executive Summary\*\*/)) {
-      flushList(i);
-      elements.push(
-        <div key={i} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', margin: '12px 0 4px' }}>
-          📋 Executive Summary
-        </div>
-      );
-      inKeyTerms = false;
-      return;
-    }
-
-    if (line.match(/^\d+\.\s+\*\*Key Terms/)) {
-      flushList(i);
-      elements.push(
-        <div key={i} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', margin: '16px 0 8px' }}>
-          🔑 Key Terms & Vocabulary
-        </div>
-      );
-      inKeyTerms = true;
-      return;
-    }
-
-    if (line.match(/^\d+\.\s+\*\*Structured Notes/)) {
-      flushList(i);
-      inKeyTerms = false;
-      elements.push(
-        <div key={i} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', margin: '16px 0 8px' }}>
-          📖 Structured Notes
-        </div>
-      );
-      return;
-    }
-
-    // Key term pill lines: "- **Term**: Definition"
-    if (inKeyTerms && line.match(/^-\s+\*\*/)) {
-      const match = line.match(/^-\s+\*\*(.+?)\*\*:\s*(.+)/);
-      if (match) {
-        keyTermBuffer.push({ term: match[1], def: match[2] });
-        return;
-      }
-    }
-
-    // Flush key terms when we move past them
-    if (!line.match(/^-\s+\*\*/) && inKeyTerms && keyTermBuffer.length) {
-      elements.push(
-        <div key={`kt-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 16px' }}>
-          {keyTermBuffer.map((kt, ki) => (
-            <div className="study-note-key-term" key={ki} style={{
-              display: 'flex', gap: '10px', alignItems: 'flex-start',
-              padding: '10px 14px', borderRadius: '10px',
-              background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)'
-            }}>
-              <span style={{
-                fontSize: '0.75rem', fontWeight: 700, color: '#818cf8',
-                background: 'rgba(99,102,241,0.15)', padding: '2px 8px',
-                borderRadius: '6px', whiteSpace: 'nowrap', marginTop: '1px', flexShrink: 0
-              }}>{kt.term}</span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{kt.def}</span>
-            </div>
-          ))}
-        </div>
-      );
-      keyTermBuffer = [];
-      inKeyTerms = false;
     }
 
     // Bullet points
@@ -388,287 +168,8 @@ function MarkdownRenderer({ text }) {
     }
   });
 
-  // Flush remaining key terms
-  if (keyTermBuffer.length) {
-    elements.push(
-      <div key="kt-final" style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 16px' }}>
-        {keyTermBuffer.map((kt, ki) => (
-          <div className="study-note-key-term" key={ki} style={{
-            display: 'flex', gap: '10px', alignItems: 'flex-start',
-            padding: '10px 14px', borderRadius: '10px',
-            background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)'
-          }}>
-            <span style={{
-              fontSize: '0.75rem', fontWeight: 700, color: '#818cf8',
-              background: 'rgba(99,102,241,0.15)', padding: '2px 8px',
-              borderRadius: '6px', whiteSpace: 'nowrap', marginTop: '1px', flexShrink: 0
-            }}>{kt.term}</span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{kt.def}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   flushList('final');
   return <div className="study-notes-markdown">{elements}</div>;
-}
-
-// ─── Quiz Component ───────────────────────────────────────────────────────────
-function InteractiveQuiz({ questions }) {
-  const [currentQ, setCurrentQ]       = useState(0);
-  const [selectedOpt, setSelectedOpt] = useState(null);
-  const [revealed, setRevealed]       = useState(false);
-  const [score, setScore]             = useState(0);
-  const [answers, setAnswers]         = useState([]);
-  const [finished, setFinished]       = useState(false);
-  const nextButtonRef = useRef(null);
-
-  const question = questions[currentQ];
-  const isCorrect = selectedOpt && selectedOpt.startsWith(question?.correct);
-
-  const handleSelect = (opt) => {
-    if (revealed) return;
-    setSelectedOpt(opt);
-    setRevealed(true);
-    const correct = opt.startsWith(question.correct);
-    if (correct) setScore(s => s + 1);
-    setAnswers(prev => [...prev, { q: currentQ, correct }]);
-  };
-
-  const handleNext = () => {
-    if (currentQ < questions.length - 1) {
-      setCurrentQ(c => c + 1);
-      setSelectedOpt(null);
-      setRevealed(false);
-    } else {
-      setFinished(true);
-    }
-  };
-
-  const handleRestart = () => {
-    setCurrentQ(0); setSelectedOpt(null); setRevealed(false);
-    setScore(0); setAnswers([]); setFinished(false);
-  };
-
-  const progress = ((currentQ + (revealed ? 1 : 0)) / questions.length) * 100;
-
-  // Keep the action above the fixed mobile navigation after feedback appears.
-  useEffect(() => {
-    if (!revealed || !nextButtonRef.current || !window.matchMedia('(max-width: 1024px)').matches) return;
-
-    const frame = window.requestAnimationFrame(() => {
-      nextButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [currentQ, revealed]);
-
-  if (finished) {
-    const pct = Math.round((score / questions.length) * 100);
-    const grade = pct >= 90 ? { label: 'Excellent!', color: '#10b981', emoji: '🏆' }
-                : pct >= 70 ? { label: 'Good Job!',  color: '#3b82f6', emoji: '🎉' }
-                : pct >= 50 ? { label: 'Keep Going!', color: '#f59e0b', emoji: '📚' }
-                :             { label: 'Review Again', color: '#ef4444', emoji: '🔄' };
-
-    return (
-      <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{grade.emoji}</div>
-        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 8px' }}>
-          {grade.label}
-        </h3>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
-          You scored <strong style={{ color: grade.color }}>{score}/{questions.length}</strong> ({pct}%)
-        </p>
-
-        {/* Score bar */}
-        <div style={{ maxWidth: '320px', margin: '0 auto 28px', background: 'var(--bg-card)', borderRadius: '12px', height: '10px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: grade.color, borderRadius: '12px', transition: 'width 1s ease' }} />
-        </div>
-
-        {/* Per-question review */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '28px' }}>
-          {answers.map((a, i) => (
-            <div key={i} style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.7rem', fontWeight: 700,
-              background: a.correct ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
-              color: a.correct ? '#10b981' : '#ef4444',
-              border: `1px solid ${a.correct ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`
-            }}>Q{i + 1}</div>
-          ))}
-        </div>
-
-        <button
-          onClick={handleRestart}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '12px 28px', borderRadius: '12px',
-            background: 'linear-gradient(135deg, #6366f1, #2563eb)',
-            border: 'none', color: '#fff', fontSize: '0.9rem',
-            fontWeight: 700, cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(99,102,241,0.35)'
-          }}
-        >
-          <RotateCcw size={15} /> Retake Quiz
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="interactive-quiz">
-      {/* Progress header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-          Question {currentQ + 1} of {questions.length}
-        </span>
-        <span style={{
-          fontSize: '0.78rem', fontWeight: 700,
-          color: '#818cf8', background: 'rgba(99,102,241,0.1)',
-          padding: '3px 10px', borderRadius: '20px'
-        }}>
-          Score: {score}/{currentQ + (revealed ? 1 : 0)}
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '4px', marginBottom: '24px', overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', width: `${progress}%`,
-          background: 'linear-gradient(90deg, #6366f1, #2563eb)',
-          borderRadius: '4px', transition: 'width 0.4s ease'
-        }} />
-      </div>
-
-      {/* Question */}
-      <div style={{
-        padding: '20px 22px', borderRadius: '14px',
-        background: 'var(--bg-card)', border: '1px solid var(--border-color)',
-        marginBottom: '20px'
-      }}>
-        <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}>
-          {question.q}
-        </p>
-      </div>
-
-      {/* Options */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-        {question.opts.map((opt, i) => {
-          const letter = opt.charAt(0);
-          const isSelected = selectedOpt === opt;
-          const isCorrectOpt = letter === question.correct;
-          let bg = 'var(--bg-card)', borderColor = 'var(--border-color)', textColor = 'var(--text-muted)';
-
-          if (revealed) {
-            if (isCorrectOpt) {
-              bg = 'rgba(16,185,129,0.08)'; borderColor = 'rgba(16,185,129,0.35)'; textColor = '#10b981';
-            } else if (isSelected && !isCorrectOpt) {
-              bg = 'rgba(239,68,68,0.08)'; borderColor = 'rgba(239,68,68,0.35)'; textColor = '#ef4444';
-            }
-          }
-
-          return (
-            <button
-              key={i}
-              onClick={() => handleSelect(opt)}
-              disabled={revealed}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '12px 16px', borderRadius: '12px',
-                background: bg, border: `1px solid ${borderColor}`,
-                color: textColor, fontSize: '0.875rem', fontWeight: isSelected || (revealed && isCorrectOpt) ? 600 : 400,
-                cursor: revealed ? 'default' : 'pointer', textAlign: 'left',
-                transition: 'all 0.2s ease', width: '100%'
-              }}
-            >
-              <div style={{
-                width: '28px', height: '28px', borderRadius: '8px', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.78rem', fontWeight: 700,
-                background: revealed && isCorrectOpt ? 'rgba(16,185,129,0.2)'
-                  : revealed && isSelected ? 'rgba(239,68,68,0.2)'
-                  : 'rgba(99,102,241,0.1)',
-                color: revealed && isCorrectOpt ? '#10b981'
-                  : revealed && isSelected ? '#ef4444'
-                  : '#818cf8'
-              }}>{letter}</div>
-              <span style={{ flex: 1 }}>{opt.substring(3)}</span>
-              {revealed && isCorrectOpt && <CheckCircle size={16} color="#10b981" />}
-              {revealed && isSelected && !isCorrectOpt && <XCircle size={16} color="#ef4444" />}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Skip Button */}
-      {!revealed && (
-        <button
-          onClick={() => {
-            const nextAnswers = [...answers];
-            nextAnswers[currentQ] = { correct: false, skipped: true };
-            setAnswers(nextAnswers);
-            setRevealed(true);
-          }}
-          style={{
-            marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            padding: '10px 16px', borderRadius: '10px',
-            background: 'transparent', border: '1px solid var(--border-color)',
-            color: 'var(--text-subtle)', fontSize: '0.85rem', fontWeight: 600,
-            cursor: 'pointer', transition: 'all 0.2s ease', width: '100%'
-          }}
-        >
-          Skip Question
-        </button>
-      )}
-
-      {/* Explanation */}
-      {revealed && question.explanation && (
-        <div style={{
-          padding: '14px 16px', borderRadius: '12px',
-          background: isCorrect ? 'rgba(16,185,129,0.06)' : 'rgba(59,130,246,0.06)',
-          border: `1px solid ${isCorrect ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)'}`,
-          marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'flex-start'
-        }}>
-          <Brain size={16} color={isCorrect ? '#10b981' : '#60a5fa'} style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 700, color: isCorrect ? '#10b981' : '#60a5fa', margin: '0 0 3px' }}>
-              {isCorrect ? '✓ Correct!' : '✗ Incorrect'}
-            </p>
-            <p style={{ fontSize: '0.835rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
-              {question.explanation}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Next button */}
-      {revealed && (
-        <button
-          ref={nextButtonRef}
-          className="quiz-next-action"
-          onClick={handleNext}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            padding: '13px', borderRadius: '12px',
-            background: 'linear-gradient(135deg, #6366f1, #2563eb)',
-            border: 'none', color: '#fff', fontSize: '0.9rem', fontWeight: 700,
-            cursor: 'pointer', boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(99,102,241,0.45)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(99,102,241,0.3)'; }}
-        >
-          {currentQ < questions.length - 1 ? (
-            <><ChevronRight size={16} /> Next Question</>
-          ) : (
-            <><Award size={16} /> See My Results</>
-          )}
-        </button>
-      )}
-    </div>
-  );
 }
 
 // ─── Skeleton Loader ──────────────────────────────────────────────────────────
@@ -691,19 +192,15 @@ export default function StudyCompanion({ userData, setUserData }) {
   const [topic, setTopic]             = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError]             = useState('');
-  const [studyKit, setStudyKit]       = useState(null); // { notes, quiz }
-  const [activeSection, setActiveSection] = useState('notes'); // 'notes' | 'quiz'
+  const [generatedTranscript, setGeneratedTranscript] = useState(null);
   const [copied, setCopied]           = useState(false);
-  const [notesCollapsed, setNotesCollapsed] = useState(false);
-  const [isLongNotes, setIsLongNotes] = useState(false);
-  const [shouldAutoDownloadPdf, setShouldAutoDownloadPdf] = useState(false);
 
   const hasApiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
 
   const handleGenerate = async () => {
     const content = inputMode === 'transcript' ? transcript.trim() : urlInput.trim();
     if (!content) {
-      setError(inputMode === 'transcript' ? 'Please paste a transcript or educational content.' : 'Please enter a URL.');
+      setError(inputMode === 'transcript' ? 'Please paste a transcript or text content.' : 'Please enter a URL.');
       return;
     }
     if (inputMode === 'url') {
@@ -717,187 +214,63 @@ export default function StudyCompanion({ userData, setUserData }) {
     }
     setError('');
     setIsGenerating(true);
-    setStudyKit(null);
-    setShouldAutoDownloadPdf(true);
+    setGeneratedTranscript(null);
 
     try {
-      const prompt = buildStudyPrompt(content, topic, isLongNotes);
+      const prompt = buildTranscriptPrompt(content, topic);
       const response = await callGeminiAI(prompt, inputMode === 'url' ? content : '');
 
-      let parsed;
       if (response) {
-        parsed = parseAIResponse(response);
-        setStudyKit(parsed);
+        setGeneratedTranscript(response.trim());
       } else {
-        // Demo mode fallback
-        parsed = parseAIResponse(DEMO_NOTES);
-        parsed.quiz = DEMO_QUIZ;
-        setStudyKit(parsed);
+        // Fallback demo transcript
+        setGeneratedTranscript(DEMO_TRANSCRIPT);
         if (!hasApiKey) {
           setError('demo');
         }
       }
 
-      if (parsed && setUserData) {
+      if (setUserData) {
         setUserData(prev => {
-          const currentCount = prev.studyKitsGeneratedCount || 0;
-          // Older saved profiles may contain malformed history data. Never let
-          // analytics prevent a successfully generated study kit from showing.
-          const currentKits = Array.isArray(prev?.studyKitsHistory) ? prev.studyKitsHistory : [];
-          const newKit = {
-            topic: topic.trim() || 'General Study Content',
-            type: inputMode === 'transcript' ? 'Transcript' : 'URL',
+          const currentCount = prev.transcriptsGeneratedCount || 0;
+          const currentHistory = Array.isArray(prev?.transcriptsHistory) ? prev.transcriptsHistory : [];
+          const newHistory = {
+            topic: topic.trim() || 'General Content',
+            type: inputMode === 'transcript' ? 'Text Input' : 'URL',
             charCount: content.length,
             generatedAt: new Date().toISOString(),
-            questionCount: parsed.quiz?.length || 0
           };
           return {
             ...prev,
-            studyKitsGeneratedCount: currentCount + 1,
-            studyKitsHistory: [newKit, ...currentKits].slice(0, 10)
+            transcriptsGeneratedCount: currentCount + 1,
+            transcriptsHistory: [newHistory, ...currentHistory].slice(0, 10)
           };
         });
       }
     } catch (e) {
-      setShouldAutoDownloadPdf(false);
-      console.error('Study kit generation failed:', e);
-      setError(e instanceof Error ? e.message : 'Unable to generate the study kit. Please try again.');
+      console.error('Transcript generation failed:', e);
+      setError(e instanceof Error ? e.message : 'Unable to generate transcript. Please try again.');
     } finally {
       setIsGenerating(false);
-      setActiveSection('notes');
     }
   };
 
-  const handleCopyNotes = useCallback(() => {
-    if (!studyKit?.notes) return;
-    navigator.clipboard.writeText(studyKit.notes);
+  const handleCopy = useCallback(() => {
+    if (!generatedTranscript) return;
+    navigator.clipboard.writeText(generatedTranscript);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [studyKit]);
-
-  const handleDownloadPDF = useCallback(async () => {
-    if (!studyKit?.notes) return;
-    const element = document.getElementById('study-notes-content');
-    if (!element) return;
-
-    // Capture a dedicated print surface instead of the dark on-screen card.
-    // This keeps every export consistently styled and allows long notes to span pages.
-    const printSurface = document.createElement('div');
-    const printHeader = document.createElement('div');
-    const notesClone = element.cloneNode(true);
-    const escapedTopic = (topic.trim() || 'Learning Notes')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-
-    printSurface.setAttribute('aria-hidden', 'true');
-    Object.assign(printSurface.style, {
-      position: 'fixed', left: '-10000px', top: '0', width: '794px',
-      padding: '48px 54px 42px', background: '#ffffff', color: '#172033',
-      fontFamily: 'Georgia, "Times New Roman", serif', boxSizing: 'border-box',
-      '--text-main': '#172033', '--text-muted': '#475569', '--text-subtle': '#64748b',
-      '--border-color': '#dbe3f0', '--bg-card': '#ffffff', '--bg-input': '#f8fafc'
-    });
-    printHeader.innerHTML = `
-      <div style="height:5px;border-radius:6px;background:linear-gradient(90deg,#4f46e5,#7c3aed);margin-bottom:24px"></div>
-      <div style="font-size:28px;font-weight:800;letter-spacing:-0.6px;color:#172033">AI Study Kit</div>
-      <div style="margin-top:7px;font-size:13px;color:#64748b">${escapedTopic} - Comprehensive study notes</div>
-      <div style="margin:22px 0 28px;border-bottom:1px solid #dbe3f0"></div>
-`;
-
-const DEMO_QA = `# AI Study Kit: Question & Answer Guide
-
-## Section 1: Short Answer Questions
-
-### Q1: What is an algorithm?
-**Answer:** An algorithm is a clear sequence of instructions used to solve a problem or complete a task. In computing, algorithms help transform an input into a useful result through a repeatable and logical process.
-
-### Q2: Why are data structures important?
-**Answer:** Data structures organize information so that software can store, retrieve, and modify it effectively. Selecting an appropriate structure improves both the performance and clarity of a program.
-
-## Section 2: Comprehensive Long Answer Questions
-
-### Q1: How do algorithms and data structures work together in software development?
-**Answer:** Algorithms define the steps a program takes, while data structures determine how the information required by those steps is arranged. Together, they form the practical foundation of efficient software design.
-
-The choice of data structure can change how quickly an algorithm runs and how much memory it requires. For example, a hash table can make average lookups very fast, while an ordered tree can support sorted operations efficiently.
-
-In real applications, developers evaluate the size of the data, the operations users need, and the required response time before choosing an approach. This careful combination makes systems more reliable, scalable, and easier to maintain.`;
-    notesClone.removeAttribute('id');
-    notesClone.style.padding = '0';
-    notesClone.style.background = 'transparent';
-    printSurface.append(printHeader, notesClone);
-    document.body.appendChild(printSurface);
-
-    try {
-      const canvas = await html2canvas(printSurface, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      });
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const marginX = 15;
-      const topMargin = 24;
-      const footerSpace = 14;
-      const contentWidth = pdfWidth - marginX * 2;
-      const contentHeight = pdfHeight - topMargin - footerSpace;
-      const sourceSliceHeight = Math.floor(canvas.width * (contentHeight / contentWidth));
-      let sourceY = 0;
-      let page = 0;
-
-      while (sourceY < canvas.height) {
-        const sliceHeight = Math.min(sourceSliceHeight, canvas.height - sourceY);
-        const slice = document.createElement('canvas');
-        slice.width = canvas.width;
-        slice.height = sliceHeight;
-        slice.getContext('2d').drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-
-        if (page > 0) pdf.addPage();
-        pdf.setFillColor(79, 70, 229);
-        pdf.rect(0, 0, pdfWidth, 5, 'F');
-        pdf.setTextColor(71, 85, 105);
-        pdf.setFontSize(8);
-        pdf.text('AI STUDY KIT', marginX, 15);
-        pdf.text(`Page ${page + 1}`, pdfWidth - marginX, pdfHeight - 7, { align: 'right' });
-        pdf.addImage(slice.toDataURL('image/png'), 'PNG', marginX, topMargin, contentWidth, sliceHeight * contentWidth / canvas.width);
-
-        sourceY += sliceHeight;
-        page += 1;
-      }
-      pdf.save('AI-Study-Kit.pdf');
-    } catch (err) {
-      console.error('PDF generation failed:', err);
-    } finally {
-      printSurface.remove();
-    }
-  }, [studyKit, topic]);
-
-  // Each completed Study Kit automatically includes its polished A4 notes PDF.
-  useEffect(() => {
-    if (!shouldAutoDownloadPdf || isGenerating || !studyKit?.notes) return;
-
-    const frame = window.requestAnimationFrame(() => {
-      setShouldAutoDownloadPdf(false);
-      handleDownloadPDF();
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [shouldAutoDownloadPdf, isGenerating, studyKit, handleDownloadPDF]);
+  }, [generatedTranscript]);
 
   const charCount = transcript.length;
 
   return (
     <div className="study-companion-container">
-
       {/* ── Shimmer animation keyframe ─── */}
       <style>{`
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>
 
       {/* ── Page Header ─────────────────────────────────────────────────── */}
@@ -909,14 +282,14 @@ In real applications, developers evaluate the size of the data, the operations u
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 16px rgba(124,58,237,0.35)'
           }}>
-            <BookOpen size={22} color="#fff" strokeWidth={2} />
+            <AlignLeft size={22} color="#fff" strokeWidth={2} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-              AI Study Companion
+              AI Transcript Generator
             </h1>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-subtle)', margin: 0, fontWeight: 500 }}>
-              Transform any content into a complete Study Kit — notes, key terms & interactive quiz
+              Convert raw audio transcriptions, URL feeds, or unformatted text into beautifully styled, professional transcripts
             </p>
           </div>
         </div>
@@ -924,10 +297,10 @@ In real applications, developers evaluate the size of the data, the operations u
         {/* Stats pills */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
           {[
-            { icon: '📝', label: 'AI-Generated Notes' },
-            { icon: '🔑', label: 'Key Terms Extraction' },
-            { icon: '🧠', label: '10-Question Quiz' },
-            { icon: '📊', label: 'Score Tracking' },
+            { icon: '🎙️', label: 'Polished Transcription' },
+            { icon: '✨', label: 'Grammar & Clarity Correction' },
+            { icon: '📂', label: 'Logical Sectioning' },
+            { icon: '📋', label: 'Instant Copy Text' },
           ].map((p, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: '5px',
@@ -942,7 +315,7 @@ In real applications, developers evaluate the size of the data, the operations u
       </div>
 
       {/* ── Main Layout ──────────────────────────────────────────────────── */}
-      <div className={`study-companion-grid ${studyKit ? 'has-kit' : ''}`}>
+      <div className={`study-companion-grid ${generatedTranscript ? 'has-kit' : ''}`}>
 
         {/* ── Left: Input Panel ──────────────────────────────────────────── */}
         <div style={{
@@ -952,7 +325,7 @@ In real applications, developers evaluate the size of the data, the operations u
         }}>
           <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sparkles size={16} color="#818cf8" />
-            Content Input
+            Content Source
           </h2>
 
           {/* Input Mode Toggle */}
@@ -962,8 +335,8 @@ In real applications, developers evaluate the size of the data, the operations u
             border: '1px solid var(--border-color)'
           }}>
             {[
-              { id: 'transcript', label: 'Transcript', icon: AlignLeft },
-              { id: 'url', label: 'URL / Link', icon: Globe },
+              { id: 'transcript', label: 'Paste Text / Transcript', icon: AlignLeft },
+              { id: 'url', label: 'Video / Article URL', icon: Globe },
             ].map(m => {
               const Icon = m.icon;
               const active = inputMode === m.id;
@@ -987,12 +360,12 @@ In real applications, developers evaluate the size of the data, the operations u
           {inputMode === 'transcript' && (
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                Video Transcript / Educational Content
+                Raw Transcript or Text Draft
               </label>
               <textarea
                 value={transcript}
                 onChange={e => setTranscript(e.target.value)}
-                placeholder="Paste your video transcript, lecture notes, or any educational text here…"
+                placeholder="Paste your unformatted draft transcript, lecture audio notes, or text content here…"
                 rows={10}
                 style={{
                   width: '100%', padding: '12px 14px', borderRadius: '12px',
@@ -1014,7 +387,7 @@ In real applications, developers evaluate the size of the data, the operations u
           {inputMode === 'url' && (
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                Content URL
+                Video or Page Link
               </label>
               <div style={{ position: 'relative' }}>
                 <Link2 size={14} color="var(--text-subtle)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
@@ -1038,17 +411,17 @@ In real applications, developers evaluate the size of the data, the operations u
             </div>
           )}
 
-          {/* Topic Tag (optional) */}
+          {/* Topic Tag */}
           <div style={{ marginBottom: '18px' }}>
             <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-              Subject / Topic <span style={{ fontWeight: 400, color: 'var(--text-subtle)' }}>(optional)</span>
+              Context / Topic <span style={{ fontWeight: 400, color: 'var(--text-subtle)' }}>(optional)</span>
             </label>
             <div style={{ position: 'relative' }}>
               <Hash size={13} color="var(--text-subtle)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
-                placeholder="e.g. Computer Science, Biology, History…"
+                placeholder="e.g. Technology Keynote, Biology Lecture, Custom..."
                 style={{
                   width: '100%', padding: '9px 14px 9px 32px', borderRadius: '10px',
                   background: 'var(--bg-main)', border: '1px solid var(--border-color)',
@@ -1056,33 +429,6 @@ In real applications, developers evaluate the size of the data, the operations u
                   fontFamily: 'inherit', boxSizing: 'border-box'
                 }}
               />
-            </div>
-          </div>
-
-          {/* Note Length Toggle */}
-          <div style={{ marginBottom: '18px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-              Note Length
-            </label>
-            <div className="notes-length-toggle" role="group" aria-label="Note length">
-              {[
-                { id: false, label: 'Short Notes', icon: AlignLeft },
-                { id: true, label: 'Long Notes', icon: FileText },
-              ].map(m => {
-                const Icon = m.icon;
-                const active = isLongNotes === m.id;
-                return (
-                  <button
-                    key={String(m.id)}
-                    type="button"
-                    className={`notes-length-toggle-button${active ? ' active' : ''}`}
-                    onClick={() => setIsLongNotes(m.id)}
-                    aria-pressed={active}
-                  >
-                    <Icon size={13} /> {m.label}
-                  </button>
-                );
-              })}
             </div>
           </div>
 
@@ -1115,18 +461,18 @@ In real applications, developers evaluate the size of the data, the operations u
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = isGenerating ? 'none' : '0 4px 18px rgba(124,58,237,0.4)'; }}
           >
             {isGenerating ? (
-              <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating Study Kit…</>
+              <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing Transcript…</>
             ) : (
-              <><Zap size={16} /> Generate Study Kit</>
+              <><Zap size={16} /> Clean & Format Transcript</>
             )}
           </button>
 
           {/* Tips */}
-          {!studyKit && !isGenerating && (
+          {!generatedTranscript && !isGenerating && (
             <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.1)' }}>
-              <p style={{ fontSize: '0.73rem', fontWeight: 700, color: '#818cf8', margin: '0 0 8px' }}>💡 Tips for best results</p>
+              <p style={{ fontSize: '0.73rem', fontWeight: 700, color: '#818cf8', margin: '0 0 8px' }}>💡 Guidelines</p>
               <ul style={{ margin: 0, paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {['Paste complete transcripts (lectures, tutorials, videos)', 'Include at least 200+ words for accurate quiz generation', 'Add a subject tag to help AI focus on relevant concepts'].map((t, i) => (
+                {['Paste unedited raw voice-to-text transcripts', 'Input video links to generate clean transcript summaries', 'Context helps AI structure logical topic boundaries'].map((t, i) => (
                   <li key={i} style={{ fontSize: '0.73rem', color: 'var(--text-subtle)', lineHeight: 1.5 }}>{t}</li>
                 ))}
               </ul>
@@ -1134,46 +480,40 @@ In real applications, developers evaluate the size of the data, the operations u
           )}
         </div>
 
-        {/* ── Right: Study Kit Output ────────────────────────────────────── */}
-        {(isGenerating || studyKit) && (
+        {/* ── Right: Output Panel ────────────────────────────────────── */}
+        {(isGenerating || generatedTranscript) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeInUp 0.5s ease' }}>
-
-            {/* ── Notes Section ─── */}
             <div style={{
               background: 'var(--bg-card)', borderRadius: '18px',
               border: '1px solid var(--border-color)', overflow: 'hidden'
             }}>
-              {/* Notes header */}
+              {/* Header */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '16px 20px', borderBottom: '1px solid var(--border-color)',
                 background: 'rgba(124,58,237,0.03)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileText size={15} color="#818cf8" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>AI Q&A Study Guide</span>
+                  <AlignLeft size={15} color="#818cf8" />
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>Structured Transcript</span>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={handleCopyNotes} disabled={isGenerating} style={{
-                    display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px',
+                <div>
+                  <button onClick={handleCopy} disabled={isGenerating} style={{
+                    display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px',
                     borderRadius: '8px', border: '1px solid var(--border-color)',
-                    background: 'transparent', color: 'var(--text-muted)',
-                    fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer'
-                  }}>
-                    {copied ? <><Check size={12} color="#10b981" /> Copied</> : <><Copy size={12} /> Copy</>}
-                  </button>
-                  <button onClick={handleDownloadPDF} disabled={isGenerating} style={{
-                    display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px',
-                    borderRadius: '8px', border: '1px solid rgba(99,102,241,0.25)',
-                    background: 'rgba(99,102,241,0.08)', color: '#818cf8',
-                    fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer'
-                  }}>
-                    <Download size={12} /> PDF
+                    background: 'var(--bg-card)', color: 'var(--text-main)',
+                    fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)', transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-main)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-card)'; }}
+                  >
+                    {copied ? <><Check size={13} color="#10b981" /> Copied!</> : <><Copy size={13} /> Copy Transcript</>}
                   </button>
                 </div>
               </div>
 
-              {/* Notes body */}
+              {/* Body */}
               <div id="study-notes-content" className="study-notes-content" style={{ padding: '20px 24px' }}>
                 {isGenerating ? (
                   <div>
@@ -1182,26 +522,16 @@ In real applications, developers evaluate the size of the data, the operations u
                     <Skeleton height={14} width="90%" mb={6} radius={5} />
                     <Skeleton height={14} width="80%" mb={20} radius={5} />
                     <Skeleton height={18} width="40%" mb={10} radius={6} />
-                    {[1,2,3,4].map(i => (
-                      <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                        <Skeleton height={32} width={80} radius={8} mb={0} />
-                        <Skeleton height={32} radius={8} mb={0} />
-                      </div>
-                    ))}
-                    <Skeleton height={18} width="45%" mb={10} radius={6} />
-                    {[1,2,3].map(i => <Skeleton key={i} height={14} mb={6} radius={5} />)}
+                    {[1, 2, 3].map(i => <Skeleton key={i} height={14} mb={6} radius={5} />)}
                   </div>
                 ) : (
-                  <MarkdownRenderer text={studyKit?.notes} />
+                  <MarkdownRenderer text={generatedTranscript} />
                 )}
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Spin keyframe */}
-      <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
     </div>
   );
 }
