@@ -4,3 +4,4 @@
 - `[x]` Update StudyCompanion.jsx to implement Transcript Generator and remove PDF download
 - `[x]` Verify changes compile and run correctly
 - `[x]` Update QuizCompanion.jsx to add quiz length slider (1-35) and upgrade to gemini-2.5-pro model
+- `[x]` Upgrade global CSS styling colors to professional obsidian-zinc dark mode
