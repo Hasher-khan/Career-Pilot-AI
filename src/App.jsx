@@ -17,6 +17,7 @@ import QuizCompanion from './components/QuizCompanion';
 
 import { useAuth } from './context/AuthContext';
 import { loadUserProfile, saveUserProfile, initNewUserProfile } from './utils/firestoreService';
+import { notifyUserLogin } from './utils/backendAgent';
 
 // ── Empty profile used for new users (before they fill in their details) ─────
 const emptyUserData = {
@@ -94,6 +95,13 @@ export default function App() {
             name:  currentUser.displayName || '',
             email: currentUser.email       || '',
           });
+        }
+
+        // Trigger login notification mail (tracked in sessionStorage to run once per load)
+        const sessionKey = `careerpilot_login_notified_${currentUser.uid}`;
+        if (!sessionStorage.getItem(sessionKey)) {
+          notifyUserLogin(currentUser.email, currentUser.displayName || profile?.name || '');
+          sessionStorage.setItem(sessionKey, 'true');
         }
       } catch (err) {
         console.warn('Failed to load user data, using auth fallback:', err.message);

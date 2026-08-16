@@ -15,6 +15,7 @@ import {
   deleteAnnouncement,
   toggleAnnouncement
 } from '../utils/adminService';
+import { notifyNewUpdate } from '../utils/backendAgent';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'hk786412345';
@@ -372,9 +373,15 @@ export default function AdminPanel() {
     }
     setAnnSending(true);
     try {
-      await postAnnouncement({ title: annTitle.trim(), message: annMessage.trim(), type: annType, pinned: annPinned });
+      const title   = annTitle.trim();
+      const message = annMessage.trim();
+      await postAnnouncement({ title, message, type: annType, pinned: annPinned });
+      // 📧 Broadcast email notification to all registered users
+      notifyNewUpdate(title, message).catch(err =>
+        console.warn('[Backend Agent] Announcement email broadcast failed silently:', err)
+      );
       setAnnTitle(''); setAnnMessage(''); setAnnPinned(false); setAnnType('info');
-      setAnnToast('✅ Announcement broadcast to all users!');
+      setAnnToast('✅ Announcement broadcast to all users — email notifications sent!');
     } catch (e) {
       setAnnToast('❌ Failed to send: ' + e.message);
     } finally {

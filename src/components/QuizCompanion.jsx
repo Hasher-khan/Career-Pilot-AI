@@ -2,7 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Sparkles, Link2, Zap, Award, Brain,
   CheckCircle, XCircle, RotateCcw, AlignLeft,
-  AlertCircle, Loader, Globe, Hash, ChevronRight
+  AlertCircle, Loader, Globe, Hash, ChevronRight,
+  BarChart2
 } from 'lucide-react';
 
 // ─── Gemini API Call ─────────────────────────────────────────────────────────
@@ -33,12 +34,62 @@ async function callGeminiAI(prompt) {
   }
 }
 
+// ─── Difficulty config ────────────────────────────────────────────────────────
+const DIFFICULTY_CONFIG = {
+  easy: {
+    label: 'Easy',
+    color: '#10b981',
+    bg: 'rgba(16,185,129,0.12)',
+    border: 'rgba(16,185,129,0.35)',
+    emoji: '🟢',
+    description: 'Basic recall & straightforward comprehension questions',
+    instruction: `- Use simple, direct language that a beginner can easily understand.
+- Focus on basic facts, definitions, and straightforward recall.
+- Avoid tricky wording or complex multi-step reasoning.
+- All wrong options should be clearly distinguishable from the correct one.
+- Prefer True/False questions and simple MCQs.`
+  },
+  medium: {
+    label: 'Medium',
+    color: '#f59e0b',
+    bg: 'rgba(245,158,11,0.12)',
+    border: 'rgba(245,158,11,0.35)',
+    emoji: '🟡',
+    description: 'Applied understanding & moderate analytical thinking',
+    instruction: `- Use a balanced mix of recall, comprehension, and application questions.
+- Include questions that require the learner to apply concepts, not just remember them.
+- Wrong options should be plausible to create meaningful challenge.
+- Mix MCQs with some True/False questions.
+- Expect a mix of concrete and slightly abstract reasoning.`
+  },
+  hard: {
+    label: 'Hard',
+    color: '#ef4444',
+    bg: 'rgba(239,68,68,0.12)',
+    border: 'rgba(239,68,68,0.35)',
+    emoji: '🔴',
+    description: 'Deep analysis, synthesis & critical evaluation',
+    instruction: `- Use advanced language and complex multi-step reasoning questions.
+- Focus on analysis, synthesis, evaluation, and edge-case scenarios.
+- All distractors (wrong options) should be highly plausible and require careful thought to rule out.
+- Include questions that demand critical thinking and comparison of concepts.
+- Avoid straightforward recall; every question should challenge the learner.`
+  }
+};
+
 // ─── System Prompt ────────────────────────────────────────────────────────────
-function buildQuizPrompt(content, topic, numQuestions = 10) {
+function buildQuizPrompt(content, topic, numQuestions = 10, difficulty = 'medium') {
+  const diff = DIFFICULTY_CONFIG[difficulty] || DIFFICULTY_CONFIG.medium;
   return `### SYSTEM PROMPT: AI INTERACTIVE QUIZ GENERATOR
 
 You are an expert educational AI assistant. Your task is to process the provided video transcript or educational content and generate a ${numQuestions}-question interactive quiz based directly on the content.
 ${topic ? `\nThe topic/subject context is: ${topic}\n` : ''}
+### DIFFICULTY LEVEL: ${diff.label.toUpperCase()} ${diff.emoji}
+${diff.description}
+
+**Difficulty-specific instructions:**
+${diff.instruction}
+
 ---
 
 ### REQUIRED OUTPUT FORMAT
@@ -47,7 +98,7 @@ Return the output formatted strictly according to the following structure:
 
 #### SECTION 2: INTERACTIVE QUIZZES
 
-Generate a ${numQuestions}-question interactive quiz based directly on the provided content. Include a mix of Multiple-Choice Questions (MCQs) and True/False Questions.
+Generate a ${numQuestions}-question interactive quiz based directly on the provided content. Include a mix of Multiple-Choice Questions (MCQs) and True/False Questions appropriate for the ${diff.label} difficulty level.
 
 For each question, follow this exact structure:
 
@@ -66,6 +117,7 @@ For True/False questions, use only A) True and B) False as options.
 ### INSTRUCTIONS & RULES:
 - Keep the language accurate, engaging, and clear for learners.
 - Ensure all quiz questions are directly answerable using information present in the transcript/content.
+- Calibrate every question precisely to the **${diff.label}** difficulty level.
 - Return ONLY the interactive quiz questions in the format specified above. Do not include summary notes.
 
 ---
@@ -414,6 +466,8 @@ export default function QuizCompanion({ userData, setUserData }) {
   const [urlInput, setUrlInput]       = useState('');
   const [topic, setTopic]             = useState('');
   const [quizLength, setQuizLength]   = useState(10);
+  const [difficulty, setDifficulty]   = useState('medium'); // 'easy' | 'medium' | 'hard'
+  const [activeDifficulty, setActiveDifficulty] = useState('medium'); // difficulty used for current quiz
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError]             = useState('');
   const [quizList, setQuizList]       = useState(null); // array of questions
@@ -430,8 +484,9 @@ export default function QuizCompanion({ userData, setUserData }) {
     setIsGenerating(true);
     setQuizList(null);
 
+    setActiveDifficulty(difficulty);
     try {
-      const prompt = buildQuizPrompt(content, topic, quizLength);
+      const prompt = buildQuizPrompt(content, topic, quizLength, difficulty);
       const response = await callGeminiAI(prompt);
 
       let parsed;
@@ -614,6 +669,46 @@ export default function QuizCompanion({ userData, setUserData }) {
             </div>
           </div>
 
+          {/* Difficulty Level Selector */}
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+              <BarChart2 size={13} color="var(--text-muted)" />
+              Difficulty Level
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {Object.entries(DIFFICULTY_CONFIG).map(([key, cfg]) => {
+                const isActive = difficulty === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setDifficulty(key)}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '10px 8px',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${isActive ? cfg.border : 'var(--border-color)'}`,
+                      background: isActive ? cfg.bg : 'var(--bg-main)',
+                      color: isActive ? cfg.color : 'var(--text-muted)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isActive ? `0 2px 10px ${cfg.bg}` : 'none'
+                    }}
+                  >
+                    <span style={{ fontSize: '1.1rem' }}>{cfg.emoji}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: isActive ? 700 : 500 }}>{cfg.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-subtle)', margin: '6px 0 0', lineHeight: 1.4 }}>
+              {DIFFICULTY_CONFIG[difficulty].description}
+            </p>
+          </div>
+
           {/* Quiz Length Selector */}
           <div style={{ marginBottom: '18px' }}>
             <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
@@ -700,12 +795,28 @@ export default function QuizCompanion({ userData, setUserData }) {
                   <Brain size={15} color="#ec4899" />
                   <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>Interactive Quiz</span>
                 </div>
-                <span style={{
-                  fontSize: '0.72rem', fontWeight: 700, color: '#ec4899',
-                  background: 'rgba(236,72,153,0.1)', padding: '3px 10px', borderRadius: '10px'
-                }}>
-                  {quizList?.length || 0} Questions
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {activeDifficulty && (() => {
+                    const cfg = DIFFICULTY_CONFIG[activeDifficulty];
+                    return (
+                      <span style={{
+                        fontSize: '0.7rem', fontWeight: 700,
+                        color: cfg.color, background: cfg.bg,
+                        border: `1px solid ${cfg.border}`,
+                        padding: '2px 9px', borderRadius: '10px',
+                        display: 'flex', alignItems: 'center', gap: '4px'
+                      }}>
+                        {cfg.emoji} {cfg.label}
+                      </span>
+                    );
+                  })()}
+                  <span style={{
+                    fontSize: '0.72rem', fontWeight: 700, color: '#ec4899',
+                    background: 'rgba(236,72,153,0.1)', padding: '3px 10px', borderRadius: '10px'
+                  }}>
+                    {quizList?.length || 0} Questions
+                  </span>
+                </div>
               </div>
 
               <div style={{ padding: '20px 24px' }}>
