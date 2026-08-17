@@ -334,7 +334,7 @@ export default function App() {
       <nav className="mobile-bottom-nav" role="navigation" aria-label="Main navigation">
         {[
           { id: 'dashboard',      label: 'Home',    icon: LayoutDashboard },
-          { id: 'ask-gemini',      label: 'Gemini',  icon: Sparkles },
+          { id: 'ask-gemini',      label: 'Chat Boot',  icon: Sparkles },
           { id: 'cover-letter',   label: 'Letter',  icon: Send },
           { id: 'study-companion',label: 'Transcript',icon: AlignLeft },
           { id: 'ai-quizzes',     label: 'Quizzes', icon: Brain },

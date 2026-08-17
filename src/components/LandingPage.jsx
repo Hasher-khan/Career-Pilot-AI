@@ -458,7 +458,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px' }}>Perfect to get started</p>
             </div>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '12px', listStyle: 'none', padding: 0, margin: 0, fontSize: '0.88rem' }}>
-              {['10 Ask Gemini Queries / day', 'Basic Cover Letter Generator', 'AI Email Generator'].map((item, i) => (
+              {['10 Chat Boot Queries / day', 'Basic Cover Letter Generator', 'AI Email Generator'].map((item, i) => (
                 <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Check size={12} color="#10b981" />
@@ -489,7 +489,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
               <p style={{ fontSize: '0.82rem', color: '#10b981', marginTop: '6px', fontWeight: 700 }}>Temporarily Free Promo</p>
             </div>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '12px', listStyle: 'none', padding: 0, margin: 0, fontSize: '0.88rem' }}>
-              {['Unlimited Ask Gemini Queries', 'Gemini 3.7 Flash Model access', 'Cover Letter Generator', 'AI Email Generator', 'Transcript Generator', 'AI Practice Quizzes'].map((item, i) => (
+              {['Unlimited Chat Boot Queries', 'Gemini 3.7 Flash Model access', 'Cover Letter Generator', 'AI Email Generator', 'Transcript Generator', 'AI Practice Quizzes'].map((item, i) => (
                 <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Check size={12} color="#818cf8" />
@@ -575,7 +575,7 @@ export default function LandingPage({ onGetStarted, openSignIn }) {
             <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Sparkles size={14} color="#fff" />
             </div>
-            <span><strong style={{ color: 'var(--text-main)' }}>Ask Gemini</strong> &nbsp;© 2026. Advanced AI Chat Assistant.</span>
+            <span><strong style={{ color: 'var(--text-main)' }}>Chat Boot</strong> &nbsp;© 2026. Advanced AI Chat Assistant.</span>
           </div>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
             {['Privacy Policy', 'Terms of Service', 'Help Center', 'Contact Us'].map(link => (

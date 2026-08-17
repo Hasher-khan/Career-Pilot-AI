@@ -387,7 +387,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
   const quickActions = [
     {
       id: 'ask-gemini',
-      title: 'Ask Gemini Assistant',
+      title: 'Chat Boot Assistant',
       description: 'Consult Google\'s latest Gemini 3.7 Flash model for coding, writing & analysis',
       icon: Sparkles,
       color: '#6366f1'
@@ -601,7 +601,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(99,102,241,0.35)'; }}
           >
             <Sparkles size={16} strokeWidth={2} />
-            Consult Ask Gemini
+            Consult Chat Boot
           </button>
         </div>
 
@@ -623,7 +623,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
       {/* ── Metrics Row ─────────────────────────────────────────────────── */}
       <div className="grid-2col-responsive">
         {/* ATS Score Card */}
-        {/* Ask Gemini Engine Card */}
+        {/* Chat Boot Engine Card */}
         <div className="dashboard-stats-card" style={{
           padding: '28px',
           borderRadius: '16px',
@@ -655,7 +655,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                Ask Gemini Assistant
+                Chat Boot Assistant
               </h3>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', marginBottom: '6px', fontWeight: 500 }}>
@@ -818,7 +818,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
         {/* Recommendation list */}
         <div style={{ padding: '8px 8px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <RecommendationItem text="Ask Gemini to write, refactor, or explain complex code snippets." index={0} />
+            <RecommendationItem text="Ask Chat Boot to write, refactor, or explain complex code snippets." index={0} />
             <RecommendationItem text="Generate a custom, ATS-optimized Cover Letter for your target position." index={1} />
             <RecommendationItem text="Use AI Email Generator to compose networking and follow-up emails." index={2} />
             <RecommendationItem text="Upload a video transcript into Transcript Generator to structure notes." index={3} />

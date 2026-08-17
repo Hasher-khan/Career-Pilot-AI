@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, Sparkles, AlertCircle, Copy, Check, Trash2 } from 'lucide-react';
+import { Send, Bot, Sparkles, AlertCircle, Copy, Check, Trash2, ImagePlus, Mic, Square, X } from 'lucide-react';
 import { SYSTEM_PROMPT } from '../utils/aiEngine';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.7-flash';
 const welcomeMessage = {
   sender: 'ai',
-  text: `Welcome to **Ask Gemini**! I am your advanced AI assistant powered by Google Gemini 2.5 Flash. \n\nHow can I help you today? Feel free to ask me questions about coding, creative writing, analysis, or general tasks.`
+  text: `Welcome to **Chat Boot**! I am your advanced AI assistant powered by Google Gemini 3.7 Flash. \n\nYou can ask questions, attach an image for analysis, or use the microphone to dictate a prompt.`
 };
 
 function loadChatHistory() {
@@ -18,6 +18,26 @@ function loadChatHistory() {
   }
 }
 
+function buildAssistantInstructions(userData) {
+  const profileContext = [
+    userData?.name && `Name: ${userData.name}`,
+    userData?.targetRole && `Target role: ${userData.targetRole}`,
+    userData?.targetIndustry && `Target industry: ${userData.targetIndustry}`,
+    userData?.experienceLevel && `Experience level: ${userData.experienceLevel}`,
+    Array.isArray(userData?.skills) && userData.skills.length && `Skills: ${userData.skills.join(', ')}`
+  ].filter(Boolean).join('\n');
+
+  return `${SYSTEM_PROMPT}
+
+# ANSWER QUALITY
+- Be accurate over confident: state uncertainty when a fact cannot be verified.
+- Give a complete, practical answer tailored to the user's goal. Include examples or concrete next steps when useful.
+- For career-related questions, use the profile context below only when relevant. Never invent missing credentials, experience, or achievements.
+
+# USER PROFILE CONTEXT
+${profileContext || 'No profile details are available yet.'}`;
+}
+
 export default function AskGemini({ userData }) {
   const [messages, setMessages] = useState(loadChatHistory);
   
@@ -25,7 +45,11 @@ export default function AskGemini({ userData }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [copiedId, setCopiedId] = useState(null);
+  const [attachment, setAttachment] = useState(null);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -59,7 +83,61 @@ export default function AskGemini({ userData }) {
     }
   };
 
-  const callGeminiAPI = async (userPrompt, chatHistory) => {
+  const handleImageSelect = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Please choose an image file.');
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setErrorMsg('Please choose an image smaller than 4 MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAttachment({ dataUrl: reader.result, mimeType: file.type, name: file.name });
+      setErrorMsg('');
+    };
+    reader.onerror = () => setErrorMsg('The selected image could not be read.');
+    reader.readAsDataURL(file);
+  };
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setErrorMsg('Voice input is not supported by this browser. Try Chrome or Edge.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = navigator.language || 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results).map(result => result[0].transcript).join('');
+      setInputText(transcript);
+    };
+    recognition.onerror = (event) => {
+      if (event.error !== 'aborted') setErrorMsg('Voice input could not start. Please allow microphone access and try again.');
+    };
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    setErrorMsg('');
+    setIsListening(true);
+    recognition.start();
+  };
+
+  useEffect(() => () => recognitionRef.current?.stop(), []);
+
+  const callGeminiAPI = async (userPrompt, chatHistory, imageAttachment) => {
     if (!apiKey) {
       // Simulation mode
       await new Promise(r => setTimeout(r, 1200));
@@ -99,7 +177,7 @@ export function debounce<T extends (...args: any[]) => void>(
 
       return `I am currently running in **Simulation Mode** because no \`VITE_GEMINI_API_KEY\` was found in your environment variables. 
 
-To enable real-time queries with Gemini 2.5 Flash, add your API key to your local \`.env.local\` file:
+To enable real-time queries with Gemini 3.7 Flash, add your API key to your local \`.env.local\` file:
 \`\`\`env
 VITE_GEMINI_API_KEY=your_gemini_api_key_here
 \`\`\`
@@ -120,20 +198,24 @@ Please ask a question about coding or general topics, and I will do my best to s
     while (history[0]?.role === 'model') history.shift();
     if (history.at(-1)?.role === 'user') history.pop();
 
-    const contents = [
-      ...history,
-      { role: 'user', parts: [{ text: userPrompt }] }
-    ];
+    const userParts = [{ text: userPrompt }];
+    if (imageAttachment) {
+      userParts.push({
+        inlineData: {
+          mimeType: imageAttachment.mimeType,
+          data: imageAttachment.dataUrl.split(',')[1]
+        }
+      });
+    }
+
+    const contents = [...history, { role: 'user', parts: userParts }];
 
     const body = {
       systemInstruction: {
-        parts: [{ text: SYSTEM_PROMPT }]
+        parts: [{ text: buildAssistantInstructions(userData) }]
       },
       contents,
-      generationConfig: { 
-        temperature: 0.6, 
-        maxOutputTokens: 4096 
-      }
+      generationConfig: { maxOutputTokens: 4096 }
     };
 
     const res = await fetch(
@@ -150,28 +232,34 @@ Please ask a question about coding or general topics, and I will do my best to s
       throw new Error(json?.error?.message || `API error (${res.status}).`);
     }
 
-    const reply = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const reply = json?.candidates?.[0]?.content?.parts
+      ?.map(part => part.text || '')
+      .join('')
+      .trim();
     if (!reply) {
-      throw new Error("No response returned from the Gemini service.");
+      const reason = json?.candidates?.[0]?.finishReason;
+      throw new Error(reason ? `Gemini stopped before completing an answer (${reason}).` : 'No response returned from the Gemini service.');
     }
     return reply;
   };
 
   const handleSendMessage = async (textToSend) => {
     const query = textToSend || inputText;
-    if (!query.trim() || isLoading) return;
+    if ((!query.trim() && !attachment) || isLoading) return;
 
     setErrorMsg('');
     setIsLoading(true);
     
-    const userMessage = { sender: 'user', text: query };
+    const prompt = query.trim() || 'Please analyze this image.';
+    const imageForRequest = attachment;
+    const userMessage = { sender: 'user', text: prompt, image: imageForRequest?.dataUrl };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
-    
-    if (!textToSend) setInputText('');
+    setInputText('');
+    setAttachment(null);
 
     try {
-      const responseText = await callGeminiAPI(query, messages.filter(m => m.sender !== 'error'));
+      const responseText = await callGeminiAPI(prompt, messages.filter(m => m.sender !== 'error'), imageForRequest);
       setMessages(prev => [...prev, { sender: 'ai', text: responseText }]);
     } catch (err) {
       console.error(err);
@@ -183,7 +271,7 @@ Please ask a question about coding or general topics, and I will do my best to s
   };
 
   const renderMessageContent = (text) => {
-    // Basic Markdown parser for beautiful inline rendering in Ask Gemini
+    // Basic Markdown parser for beautiful inline rendering in Chat Boot
     const parts = text.split(/(```[\s\S]*?```)/g);
     
     return parts.map((part, index) => {
@@ -308,22 +396,22 @@ Please ask a question about coding or general topics, and I will do my best to s
       borderRadius: '16px',
       border: '1px solid var(--border-color)',
       overflow: 'hidden'
-    }} className="glass-panel">
-      {/* Ask Gemini Header */}
+    }} className="glass-panel chat-boot-shell">
+      {/* Chat Boot Header */}
       <div style={{
         padding: '16px 20px',
         borderBottom: '1px solid var(--border-color)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: 'rgba(99, 102, 241, 0.05)'
+        background: 'var(--chat-boot-header)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '38px',
             height: '38px',
             borderRadius: '10px',
-            background: 'linear-gradient(135deg, #6366f1, #2563eb)',
+            background: 'var(--chat-boot-gradient)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -332,9 +420,9 @@ Please ask a question about coding or general topics, and I will do my best to s
             <Sparkles size={18} color="#fff" />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Ask Gemini</h4>
+            <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Chat Boot</h4>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)' }}>
-              Powered by Google's latest Gemini 3.7 Flash Model
+              Gemini 3.7 Flash · Image + Voice ready
             </span>
           </div>
         </div>
@@ -391,7 +479,7 @@ Please ask a question about coding or general topics, and I will do my best to s
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
-        backgroundColor: 'rgba(9, 13, 22, 0.2)'
+        backgroundColor: 'var(--chat-boot-surface)'
       }}>
         {messages.map((m, idx) => (
           <div 
@@ -431,6 +519,13 @@ Please ask a question about coding or general topics, and I will do my best to s
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
             }}>
               {renderMessageContent(m.text)}
+              {m.image && (
+                <img
+                  src={m.image}
+                  alt="User attachment"
+                  style={{ display: 'block', width: 'min(100%, 320px)', maxHeight: '260px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px' }}
+                />
+              )}
             </div>
           </div>
         ))}
@@ -461,7 +556,7 @@ Please ask a question about coding or general topics, and I will do my best to s
                 borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite'
               }} />
-              Gemini is thinking...
+              Chat Boot is thinking...
             </div>
           </div>
         )}
@@ -476,7 +571,7 @@ Please ask a question about coding or general topics, and I will do my best to s
           gap: '8px',
           overflowX: 'auto',
           borderTop: '1px solid var(--border-color)',
-          backgroundColor: 'rgba(9, 13, 22, 0.1)'
+        backgroundColor: 'var(--chat-boot-surface)'
         }}>
           {quickPrompts.map((p, idx) => (
             <button
@@ -513,14 +608,39 @@ Please ask a question about coding or general topics, and I will do my best to s
         style={{
           padding: '16px 20px',
           borderTop: '1px solid var(--border-color)',
-          display: 'flex',
-          gap: '12px',
-          background: 'var(--bg-card)'
-        }}
+        display: 'flex',
+        gap: '10px',
+        flexWrap: 'wrap',
+        background: 'var(--bg-card)'
+      }}
       >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageSelect}
+          style={{ display: 'none' }}
+        />
+        {attachment && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '7px 10px', borderRadius: '9px', background: 'var(--chat-boot-attachment)', border: '1px solid var(--chat-boot-border)', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+            <ImagePlus size={14} color="var(--accent-primary)" />
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.name}</span>
+            <button type="button" onClick={() => setAttachment(null)} aria-label="Remove image" style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}><X size={15} /></button>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isLoading}
+          aria-label="Attach image"
+          title="Attach image"
+          className="chat-boot-tool-button"
+        >
+          <ImagePlus size={18} />
+        </button>
         <input 
           type="text" 
-          placeholder="Ask Gemini anything..."
+          placeholder="Ask Chat Boot anything..."
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           disabled={isLoading}
@@ -538,14 +658,24 @@ Please ask a question about coding or general topics, and I will do my best to s
           onFocus={e => e.target.style.borderColor = '#6366f1'}
           onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
         />
+        <button
+          type="button"
+          onClick={toggleVoiceInput}
+          disabled={isLoading}
+          aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+          title={isListening ? 'Stop listening' : 'Voice input'}
+          className={`chat-boot-tool-button${isListening ? ' listening' : ''}`}
+        >
+          {isListening ? <Square size={15} /> : <Mic size={18} />}
+        </button>
         <button 
           type="submit" 
-          disabled={isLoading || !inputText.trim()}
+          disabled={isLoading || (!inputText.trim() && !attachment)}
           style={{
             padding: '0 20px',
             borderRadius: '10px',
             border: 'none',
-            background: (isLoading || !inputText.trim()) ? 'var(--border-color)' : 'linear-gradient(135deg, #6366f1, #2563eb)',
+            background: (isLoading || (!inputText.trim() && !attachment)) ? 'var(--border-color)' : 'var(--chat-boot-gradient)',
             color: '#fff',
             fontWeight: 600,
             fontSize: '0.88rem',
@@ -554,7 +684,7 @@ Please ask a question about coding or general topics, and I will do my best to s
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: (isLoading || !inputText.trim()) ? 'none' : '0 4px 12px rgba(99,102,241,0.2)',
+            boxShadow: (isLoading || (!inputText.trim() && !attachment)) ? 'none' : '0 4px 12px rgba(14,165,233,0.25)',
             transition: 'all 0.15s ease'
           }}
         >

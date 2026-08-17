@@ -23,7 +23,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
 
   const navItems = [
     { id: 'dashboard',        label: 'Dashboard',             icon: LayoutDashboard },
-    { id: 'ask-gemini',        label: 'Ask Gemini',            icon: Sparkles,    badge: 'v3.7' },
+    { id: 'ask-gemini',        label: 'Chat Boot',             icon: Sparkles,    badge: 'AI' },
     { id: 'cover-letter',     label: 'Cover Letter',          icon: Send },
     { id: 'email-generator',  label: 'AI Email Generator',    icon: Mail,        badge: 'New' },
     { id: 'study-companion',  label: 'Transcript Generator',  icon: AlignLeft,   badge: 'AI' },
@@ -99,12 +99,12 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
               color: 'var(--text-main)',
               lineHeight: 1.2
             }}>
-              Ask<span style={{
+              Chat<span style={{
                 background: 'linear-gradient(135deg, #818cf8, #60a5fa)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
-              }}> Gemini</span>
+              }}> Boot</span>
             </h1>
             <p style={{
               fontSize: '0.62rem',
@@ -280,7 +280,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
               <Bot size={13} color="#818cf8" />
             </div>
              <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-main)' }}>
-              Ask Gemini Assistant
+              Chat Boot Assistant
             </span>
           </div>
           <p style={{

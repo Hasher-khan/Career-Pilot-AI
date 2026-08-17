@@ -15,7 +15,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
 
   const titles = {
     'dashboard':      'Dashboard Overview',
-    'ask-gemini':     'Ask Gemini Assistant',
+    'ask-gemini':     'Chat Boot Assistant',
     'cover-letter':   'AI Cover Letter Generator',
     'email-generator':'AI Email Generator',
     'settings':       'Profile & Settings',
@@ -50,7 +50,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
     },
     {
       id: 2,
-      title: 'Ask Gemini Assistant Ready',
+      title: 'Chat Boot Assistant Ready',
       description: 'Ask any questions regarding coding, writing, analysis or creative tasks.',
       time: '15m ago',
       icon: CheckCircle2,
@@ -58,7 +58,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
     },
     {
       id: 3,
-      title: 'Welcome to Ask Gemini!',
+      title: 'Welcome to Chat Boot!',
       description: 'Head over to Settings to complete your professional summary and skills details.',
       time: '1h ago',
       icon: Sparkles,
@@ -106,7 +106,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
         </button>
         <div>
           <h2 className="header-title" style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.3px', margin: 0 }}>
-            {titles[activeTab] || 'Ask Gemini'}
+            {titles[activeTab] || 'Chat Boot'}
           </h2>
           <p className="header-subtitle" style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
             Advanced AI Chat Assistant, writing coach & companion
