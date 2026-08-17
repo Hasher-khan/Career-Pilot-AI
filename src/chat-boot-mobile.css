@@ -10,6 +10,11 @@
   display: none;
 }
 
+/* The composer is the primary starting point; remove the empty-state prompt rail. */
+.chat-boot-suggestions {
+  display: none !important;
+}
+
 @media (max-width: 640px) {
   .chat-boot-shell.glass-panel {
     height: calc(100dvh - 154px) !important;
