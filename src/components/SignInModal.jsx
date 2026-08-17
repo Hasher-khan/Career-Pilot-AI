@@ -180,11 +180,11 @@ export default function SignInModal({ isOpen, onClose, onAuthSuccess, forceOpen 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <Sparkles size={24} color="#2563eb" />
             <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#2563eb', letterSpacing: '-0.5px', margin: 0 }}>
-              CareerPilot AI
+              Ask Gemini
             </h2>
           </div>
           <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '4px 0 0 0' }}>
-            Sign in to access your personalized career workspace.
+            Sign in to access your advanced AI assistant workspace.
           </p>
         </div>
 

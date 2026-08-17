@@ -386,10 +386,10 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
 
   const quickActions = [
     {
-      id: 'resume-builder',
-      title: 'ATS Resume Audit',
-      description: 'Run live ATS scan & enhance action verbs for 90+ compliance',
-      icon: FileText,
+      id: 'ask-gemini',
+      title: 'Ask Gemini Assistant',
+      description: 'Consult Google\'s latest Gemini 3.7 Flash model for coding, writing & analysis',
+      icon: Sparkles,
       color: '#6366f1'
     },
     {
@@ -405,20 +405,13 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
       description: 'Craft professional follow-ups, networking & application emails',
       icon: Mail,
       color: '#ec4899'
-    },
-    {
-      id: 'ai-cv-maker',
-      title: 'AI CV Maker',
-      description: 'Generate premium CV layouts & customize styling for export',
-      icon: FileEdit,
-      color: '#10b981'
     }
   ];
 
   const metrics = [
-    { label: 'Resume ATS Quality',    value: atsResult.isEmpty ? 0 : atsResult.score, color: '#6366f1', icon: FileText },
-    { label: 'Cover Letter Readiness', value: atsResult.isEmpty ? 0 : 90,              color: '#10b981', icon: Send },
-    { label: 'AI Email Readiness',     value: atsResult.isEmpty ? 0 : 85,              color: '#f59e0b', icon: Mail },
+    { label: 'Gemini AI Performance', value: 98,              color: '#6366f1', icon: Sparkles },
+    { label: 'Cover Letter Quality',  value: 90,              color: '#10b981', icon: Send },
+    { label: 'AI Email Quality',      value: 85,              color: '#f59e0b', icon: Mail },
   ];
 
   return (
@@ -588,7 +581,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
 
           {/* CTA Button */}
           <button
-            onClick={openAiChat}
+            onClick={() => setActiveTab('ask-gemini')}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '10px',
               padding: '13px 24px',
@@ -608,7 +601,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(99,102,241,0.35)'; }}
           >
             <Sparkles size={16} strokeWidth={2} />
-            Consult CareerPilot AI
+            Consult Ask Gemini
           </button>
         </div>
 
@@ -620,16 +613,17 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
           marginTop: '24px',
           flexWrap: 'wrap'
         }}>
-          <StatChip icon={Award}    label="ATS Score"   value={atsResult.isEmpty ? '—'    : `${atsResult.score}/100`}  color="#6366f1" />
-          <StatChip icon={Activity}  label="Readiness"   value={atsResult.isEmpty ? '—'    : `${userData.readinessIndex || 0}%`} color="#10b981" />
-          <StatChip icon={Clock}     label="Last Updated" value="Today"                                                          color="#2563eb" />
-          <StatChip icon={Star}      label="Profile Rank" value={atsResult.isEmpty ? '—'    : 'Top 15%'}                        color="#f59e0b" />
+          <StatChip icon={Award}    label="AI Model"     value="Gemini 3.7 Flash" color="#6366f1" />
+          <StatChip icon={Activity}  label="AI Uptime"    value="100% Online"      color="#10b981" />
+          <StatChip icon={Clock}     label="Last Active"  value="Today"            color="#2563eb" />
+          <StatChip icon={Star}      label="AI Services"  value="Unlimited"        color="#f59e0b" />
         </div>
       </div>
 
       {/* ── Metrics Row ─────────────────────────────────────────────────── */}
       <div className="grid-2col-responsive">
         {/* ATS Score Card */}
+        {/* Ask Gemini Engine Card */}
         <div className="dashboard-stats-card" style={{
           padding: '28px',
           borderRadius: '16px',
@@ -639,7 +633,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
         }}>
           {/* Ring */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
-            <AnimatedRing score={atsResult.isEmpty ? 0 : atsResult.score} size={110} stroke={8} />
+            <AnimatedRing score={98} size={110} stroke={8} />
             <div style={{
               position: 'absolute',
               inset: 0,
@@ -648,11 +642,11 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <span style={{ fontSize: '1.65rem', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.04em', color: atsResult.isEmpty ? 'var(--text-subtle)' : 'var(--text-main)' }}>
-                {atsResult.isEmpty ? '—' : atsResult.score}
+              <span style={{ fontSize: '1.65rem', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.04em', color: 'var(--text-main)' }}>
+                98%
               </span>
               <span style={{ fontSize: '0.6rem', fontWeight: 500, color: 'var(--text-subtle)', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
-                /100
+                Active
               </span>
             </div>
           </div>
@@ -661,71 +655,31 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                ATS Match Score
+                Ask Gemini Assistant
               </h3>
             </div>
-
-            {atsResult.isEmpty ? (
-              <>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', marginBottom: '6px', fontWeight: 500 }}>
-                  No resume data yet
-                </p>
-                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '14px' }}>
-                  Create your resume to get a real ATS score and actionable improvement tips.
-                </p>
-                <button
-                  onClick={() => setActiveTab('resume-builder')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '7px 14px', borderRadius: '8px', border: 'none',
-                    background: 'linear-gradient(135deg, #6366f1, #2563eb)',
-                    color: '#fff', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer',
-                    boxShadow: '0 2px 10px rgba(99,102,241,0.3)'
-                  }}
-                >
-                  <FileText size={13} /> Build Resume <ArrowRight size={13} />
-                </button>
-              </>
-            ) : (
-              <>
-                <p style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  color: atsResult.statusColor,
-                  marginBottom: '6px',
-                  letterSpacing: '0.01em'
-                }}>
-                  {atsResult.statusGrade}
-                </p>
-                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '14px' }}>
-                  {atsResult.suggestions.length} actionable suggestions to reach 90+ ATS compliance.
-                </p>
-                <button
-                  onClick={() => setActiveTab('resume-builder')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '7px 14px',
-                    borderRadius: '8px',
-                    background: 'rgba(99,102,241,0.1)',
-                    border: '1px solid rgba(99,102,241,0.25)',
-                    color: '#818cf8',
-                    fontSize: '0.76rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    letterSpacing: '0.01em'
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.18)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.1)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)'; }}
-                >
-                  Fix Formatting & Verbs <ArrowRight size={13} />
-                </button>
-              </>
-            )}
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', marginBottom: '6px', fontWeight: 500 }}>
+              Gemini 3.7 Flash Model
+            </p>
+            <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '14px' }}>
+              Consult Google's latest model to write code, compose text, analyze documents, and execute general tasks.
+            </p>
+            <button
+              onClick={() => setActiveTab('ask-gemini')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '7px 14px', borderRadius: '8px', border: 'none',
+                background: 'linear-gradient(135deg, #6366f1, #2563eb)',
+                color: '#fff', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(99,102,241,0.3)'
+              }}
+            >
+              <Sparkles size={13} /> Chat with Gemini <ArrowRight size={13} />
+            </button>
           </div>
         </div>
 
-        {/* Career Readiness Card */}
+        {/* AI Services Status Card */}
         <div style={{
           padding: '28px',
           borderRadius: '16px',
@@ -748,7 +702,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
                 <Target size={16} color="#818cf8" strokeWidth={1.75} />
               </div>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                Career Readiness Index
+                AI Services Status
               </h3>
             </div>
             <span style={{
@@ -760,51 +714,15 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
               backgroundClip: 'text',
               letterSpacing: '-0.03em'
             }}>
-              {atsResult.isEmpty ? '0%' : `${userData.readinessIndex || 0}%`}
+              91% avg
             </span>
           </div>
 
-          {/* Metric Bars or Empty-state prompt */}
-          {atsResult.isEmpty ? (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '12px', padding: '16px 0', textAlign: 'center'
-            }}>
-              <div style={{
-                width: '44px', height: '44px', borderRadius: '12px',
-                background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <Target size={20} color="#6366f1" strokeWidth={1.5} />
-              </div>
-              <div>
-                <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', margin: '0 0 4px' }}>
-                  No data yet
-                </p>
-                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-                  Build your resume first to see your readiness scores here.
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveTab('resume-builder')}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 18px', borderRadius: '8px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #2563eb)',
-                  color: '#fff', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-                  boxShadow: '0 2px 10px rgba(99,102,241,0.3)'
-                }}
-              >
-                <FileText size={13} /> Build Resume
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {metrics.map((m, i) => (
-                <MetricBar key={i} {...m} />
-              ))}
-            </div>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {metrics.map((m, i) => (
+              <MetricBar key={i} {...m} />
+            ))}
+          </div>
         </div>
       </div>
 
@@ -884,85 +802,27 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
             </div>
           </div>
 
-          {atsResult.isEmpty ? (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px',
-              fontSize: '0.7rem', fontWeight: 600,
-              color: 'var(--text-subtle)',
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.03em'
-            }}>
-              — No data
-            </span>
-          ) : (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px',
-              fontSize: '0.7rem', fontWeight: 600,
-              color: '#10b981',
-              background: 'rgba(16,185,129,0.1)',
-              border: '1px solid rgba(16,185,129,0.2)',
-              padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.03em'
-            }}>
-              <CheckCircle2 size={11} />
-              {atsResult.suggestions.length} Actions
-            </span>
-          )}
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px',
+            fontSize: '0.7rem', fontWeight: 600,
+            color: '#10b981',
+            background: 'rgba(16,185,129,0.1)',
+            border: '1px solid rgba(16,185,129,0.2)',
+            padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.03em'
+          }}>
+            <CheckCircle2 size={11} />
+            Active
+          </span>
         </div>
 
         {/* Recommendation list */}
         <div style={{ padding: '8px 8px' }}>
-          {atsResult.isEmpty ? (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '36px 24px', gap: '12px', textAlign: 'center'
-            }}>
-              <div style={{
-                width: '52px', height: '52px', borderRadius: '14px',
-                background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <TrendingUp size={24} color="#6366f1" strokeWidth={1.5} />
-              </div>
-              <div>
-                <p style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)', margin: '0 0 6px' }}>
-                  Build your resume first
-                </p>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6, maxWidth: '280px' }}>
-                  Once you create and save your resume, AI-powered recommendations will appear here automatically.
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveTab('resume-builder')}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 20px', borderRadius: '8px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #2563eb)',
-                  color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
-                  boxShadow: '0 2px 10px rgba(99,102,241,0.3)', marginTop: '4px'
-                }}
-              >
-                <FileText size={14} /> Start Building
-              </button>
-            </div>
-          ) : atsResult.suggestions.length > 0 ? (
-            atsResult.suggestions.map((sug, idx) => (
-              <RecommendationItem key={idx} text={sug} index={idx} />
-            ))
-          ) : (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '40px 24px', gap: '10px', textAlign: 'center'
-            }}>
-              <CheckCircle2 size={32} color="#10b981" strokeWidth={1.5} />
-              <p style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
-                You're all caught up!
-              </p>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                No priority actions at this time. Keep up the great work.
-              </p>
-            </div>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <RecommendationItem text="Ask Gemini to write, refactor, or explain complex code snippets." index={0} />
+            <RecommendationItem text="Generate a custom, ATS-optimized Cover Letter for your target position." index={1} />
+            <RecommendationItem text="Use AI Email Generator to compose networking and follow-up emails." index={2} />
+            <RecommendationItem text="Upload a video transcript into Transcript Generator to structure notes." index={3} />
+          </div>
         </div>
 
         {/* Footer action */}
@@ -973,7 +833,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
           justifyContent: 'flex-end'
         }}>
           <button
-            onClick={() => setActiveTab('resume-builder')}
+            onClick={() => setActiveTab('ask-gemini')}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '7px 16px',
@@ -990,7 +850,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'; e.currentTarget.style.color = '#818cf8'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
           >
-            View Full Report <ArrowRight size={13} />
+            Chat with Gemini <ArrowRight size={13} />
           </button>
         </div>
       </div>

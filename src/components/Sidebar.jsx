@@ -23,10 +23,9 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
 
   const navItems = [
     { id: 'dashboard',        label: 'Dashboard',             icon: LayoutDashboard },
-    { id: 'resume-builder',   label: 'ATS Resume & Builder',  icon: FileText,    badge: 'ATS' },
+    { id: 'ask-gemini',        label: 'Ask Gemini',            icon: Sparkles,    badge: 'v3.7' },
     { id: 'cover-letter',     label: 'Cover Letter',          icon: Send },
     { id: 'email-generator',  label: 'AI Email Generator',    icon: Mail,        badge: 'New' },
-    { id: 'ai-cv-maker',      label: 'AI CV Maker',           icon: FileEdit,    badge: 'AI' },
     { id: 'study-companion',  label: 'Transcript Generator',  icon: AlignLeft,   badge: 'AI' },
     { id: 'ai-quizzes',       label: 'AI Quizzes',            icon: Brain,       badge: 'Quiz' },
     { id: 'settings',         label: 'Profile & Settings',    icon: Settings },
@@ -100,12 +99,12 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
               color: 'var(--text-main)',
               lineHeight: 1.2
             }}>
-              Career<span style={{
+              Ask<span style={{
                 background: 'linear-gradient(135deg, #818cf8, #60a5fa)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
-              }}>Pilot AI</span>
+              }}> Gemini</span>
             </h1>
             <p style={{
               fontSize: '0.62rem',
@@ -115,7 +114,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
               letterSpacing: '0.05em',
               textTransform: 'uppercase'
             }}>
-              Precision Platform
+              Advanced AI Assistant
             </p>
           </div>
         </div>
@@ -280,8 +279,8 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
             }}>
               <Bot size={13} color="#818cf8" />
             </div>
-            <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-main)' }}>
-              CareerPilot Assistant
+             <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-main)' }}>
+              Ask Gemini Assistant
             </span>
           </div>
           <p style={{
@@ -291,10 +290,10 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
             fontWeight: 400,
             margin: 0
           }}>
-            Instant career advice, resume critiques & interview tips.
+            Instant coding, writing, analysis & general tasks support.
           </p>
           <button
-            onClick={openAiChat}
+            onClick={() => setActiveTab('ask-gemini')}
             style={{
               width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',

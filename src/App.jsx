@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { LayoutDashboard, FileText, Send, FileEdit, Settings, BookOpen, Brain, AlignLeft } from 'lucide-react';
+import { LayoutDashboard, FileText, Send, FileEdit, Settings, BookOpen, Brain, AlignLeft, Sparkles } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardOverview from './components/DashboardOverview';
-import ResumeAtsBuilder from './components/ResumeAtsBuilder';
+import AskGemini from './components/AskGemini';
 import CoverLetterGenerator from './components/CoverLetterGenerator';
 import EmailGenerator from './components/EmailGenerator';
-import AICVMaker from './components/AICVMaker';
 import AdminPanel from './components/AdminPanel';
 import ProfileSettings from './components/ProfileSettings';
 import AiAssistantModal from './components/AiAssistantModal';
@@ -282,10 +281,9 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'resume-builder' && (
-              <ResumeAtsBuilder 
+            {activeTab === 'ask-gemini' && (
+              <AskGemini
                 userData={userData}
-                setUserData={handleSetUserData}
               />
             )}
 
@@ -297,12 +295,6 @@ export default function App() {
 
             {activeTab === 'email-generator' && (
               <EmailGenerator 
-                userData={userData}
-              />
-            )}
-
-            {activeTab === 'ai-cv-maker' && (
-              <AICVMaker 
                 userData={userData}
               />
             )}
@@ -342,7 +334,7 @@ export default function App() {
       <nav className="mobile-bottom-nav" role="navigation" aria-label="Main navigation">
         {[
           { id: 'dashboard',      label: 'Home',    icon: LayoutDashboard },
-          { id: 'resume-builder', label: 'Resume',  icon: FileText },
+          { id: 'ask-gemini',      label: 'Gemini',  icon: Sparkles },
           { id: 'cover-letter',   label: 'Letter',  icon: Send },
           { id: 'study-companion',label: 'Transcript',icon: AlignLeft },
           { id: 'ai-quizzes',     label: 'Quizzes', icon: Brain },

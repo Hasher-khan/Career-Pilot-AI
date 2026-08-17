@@ -15,10 +15,9 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
 
   const titles = {
     'dashboard':      'Dashboard Overview',
-    'resume-builder': 'ATS Resume Analyzer & Builder',
+    'ask-gemini':     'Ask Gemini Assistant',
     'cover-letter':   'AI Cover Letter Generator',
     'email-generator':'AI Email Generator',
-    'ai-cv-maker':    'AI CV Maker',
     'settings':       'Profile & Settings',
     'study-companion':'Transcript Generator',
     'ai-quizzes':      'AI Practice Quizzes'
@@ -51,15 +50,15 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
     },
     {
       id: 2,
-      title: 'ATS Scanner Active',
-      description: 'Audit your resume against target roles under the Resume Builder tab.',
+      title: 'Ask Gemini Assistant Ready',
+      description: 'Ask any questions regarding coding, writing, analysis or creative tasks.',
       time: '15m ago',
       icon: CheckCircle2,
       color: '#10b981'
     },
     {
       id: 3,
-      title: 'Welcome to CareerPilot!',
+      title: 'Welcome to Ask Gemini!',
       description: 'Head over to Settings to complete your professional summary and skills details.',
       time: '1h ago',
       icon: Sparkles,
@@ -107,10 +106,10 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
         </button>
         <div>
           <h2 className="header-title" style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.3px', margin: 0 }}>
-            {titles[activeTab] || 'CareerPilot AI'}
+            {titles[activeTab] || 'Ask Gemini'}
           </h2>
           <p className="header-subtitle" style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Personalized AI application optimization & career guidance
+            Advanced AI Chat Assistant, writing coach & companion
           </p>
         </div>
       </div>
