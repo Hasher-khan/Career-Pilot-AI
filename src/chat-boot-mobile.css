@@ -1,6 +1,15 @@
 /* Focused mobile treatment for the Chat Boot workspace.
    Kept separate from the global responsive stylesheet so the chat can evolve
    without affecting the other tools. */
+.chat-boot-suggestions {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chat-boot-suggestions::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 640px) {
   .chat-boot-shell.glass-panel {
     height: calc(100dvh - 154px) !important;
