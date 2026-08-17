@@ -143,6 +143,9 @@ export default function AskGemini({ userData }) {
       await new Promise(r => setTimeout(r, 1200));
       
       const promptLower = userPrompt.toLowerCase();
+      if (/^(hello|hi|hey|assalamualaikum|salam)[!.\s]*$/i.test(userPrompt.trim())) {
+        return `Hello! I’m **Chat Boot**. I can help with career planning, coding, writing, interview preparation, and general questions. What would you like to work on?`;
+      }
       if (promptLower.includes("debounce") || promptLower.includes("typescript")) {
         return `Here is a clean, production-ready TypeScript debounce utility.
 
@@ -175,14 +178,7 @@ export function debounce<T extends (...args: any[]) => void>(
         return `Quantum computing uses qubits instead of bits to process complex data. These qubits can exist in multiple states simultaneously through superposition and entanglement. This allows quantum computers to solve specific mathematical problems exponentially faster than classical computers.`;
       }
 
-      return `I am currently running in **Simulation Mode** because no \`VITE_GEMINI_API_KEY\` was found in your environment variables. 
-
-To enable real-time queries with Gemini 3.7 Flash, add your API key to your local \`.env.local\` file:
-\`\`\`env
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-\`\`\`
-
-Please ask a question about coding or general topics, and I will do my best to simulate a compliant response!`;
+      return `I can help you think through that. For the most detailed, up-to-date answer, Chat Boot needs its Gemini connection enabled. In the meantime, try asking a specific question with the context, goal, and format you want.`;
     }
 
     // The Gemini API requires a conversation to begin with a user turn. The
