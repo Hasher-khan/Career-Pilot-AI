@@ -26,11 +26,10 @@ async function callGeminiAI(prompt, sourceUrl = '') {
 
   // Gemini processes public YouTube links as video input. For regular web pages,
   // URL Context fetches the actual page rather than asking the model to guess from
-  // a bare link.
   if (sourceUrl && !isYouTubeUrl) body.tools = [{ url_context: {} }];
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
