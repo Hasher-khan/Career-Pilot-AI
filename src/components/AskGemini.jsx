@@ -394,7 +394,7 @@ export function debounce<T extends (...args: any[]) => void>(
       overflow: 'hidden'
     }} className="glass-panel chat-boot-shell">
       {/* Chat Boot Header */}
-      <div style={{
+      <div className="chat-boot-header" style={{
         padding: '16px 20px',
         borderBottom: '1px solid var(--border-color)',
         display: 'flex',
@@ -402,7 +402,7 @@ export function debounce<T extends (...args: any[]) => void>(
         justifyContent: 'space-between',
         background: 'var(--chat-boot-header)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="chat-boot-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '38px',
             height: '38px',
@@ -423,9 +423,9 @@ export function debounce<T extends (...args: any[]) => void>(
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="chat-boot-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {!apiKey && (
-            <div style={{
+            <div className="chat-boot-mode" style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
@@ -444,6 +444,7 @@ export function debounce<T extends (...args: any[]) => void>(
           <button 
             type="button"
             onClick={handleClearChat}
+            className="chat-boot-clear"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -468,7 +469,7 @@ export function debounce<T extends (...args: any[]) => void>(
       </div>
 
       {/* Chat Area */}
-      <div style={{
+      <div className="chat-boot-messages" style={{
         flex: 1,
         padding: '24px 20px',
         overflowY: 'auto',
@@ -478,7 +479,8 @@ export function debounce<T extends (...args: any[]) => void>(
         backgroundColor: 'var(--chat-boot-surface)'
       }}>
         {messages.map((m, idx) => (
-          <div 
+          <div
+            className={`chat-boot-message ${m.sender === 'user' ? 'is-user' : 'is-assistant'}`}
             key={idx}
             style={{
               display: 'flex',
@@ -488,7 +490,7 @@ export function debounce<T extends (...args: any[]) => void>(
               flexDirection: m.sender === 'user' ? 'row-reverse' : 'row'
             }}
           >
-            <div style={{
+            <div className="chat-boot-avatar" style={{
               width: '32px',
               height: '32px',
               borderRadius: '50%',
@@ -506,7 +508,7 @@ export function debounce<T extends (...args: any[]) => void>(
               )}
             </div>
             
-            <div style={{
+            <div className="chat-boot-bubble" style={{
               padding: '14px 18px',
               borderRadius: '12px',
               backgroundColor: m.sender === 'user' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-card)',
@@ -526,7 +528,7 @@ export function debounce<T extends (...args: any[]) => void>(
           </div>
         ))}
         {isLoading && (
-          <div style={{ display: 'flex', gap: '12px', alignSelf: 'flex-start' }}>
+          <div className="chat-boot-loading" style={{ display: 'flex', gap: '12px', alignSelf: 'flex-start' }}>
             <div style={{
               width: '32px', height: '32px', borderRadius: '50%',
               background: 'linear-gradient(135deg, #6366f1, #2563eb)',
@@ -561,7 +563,7 @@ export function debounce<T extends (...args: any[]) => void>(
 
       {/* Suggestion Chips */}
       {messages.length === 1 && (
-        <div style={{
+        <div className="chat-boot-suggestions" style={{
           padding: '12px 20px',
           display: 'flex',
           gap: '8px',
@@ -599,7 +601,8 @@ export function debounce<T extends (...args: any[]) => void>(
       )}
 
       {/* Chat Footer Input */}
-      <form 
+      <form
+        className="chat-boot-composer"
         onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
         style={{
           padding: '16px 20px',
@@ -618,7 +621,7 @@ export function debounce<T extends (...args: any[]) => void>(
           style={{ display: 'none' }}
         />
         {attachment && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '7px 10px', borderRadius: '9px', background: 'var(--chat-boot-attachment)', border: '1px solid var(--chat-boot-border)', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+          <div className="chat-boot-attachment" style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '7px 10px', borderRadius: '9px', background: 'var(--chat-boot-attachment)', border: '1px solid var(--chat-boot-border)', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
             <ImagePlus size={14} color="var(--accent-primary)" />
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.name}</span>
             <button type="button" onClick={() => setAttachment(null)} aria-label="Remove image" style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}><X size={15} /></button>
@@ -635,6 +638,7 @@ export function debounce<T extends (...args: any[]) => void>(
           <ImagePlus size={18} />
         </button>
         <input 
+          className="chat-boot-input"
           type="text" 
           placeholder="Ask Chat Boot anything..."
           value={inputText}
@@ -666,6 +670,7 @@ export function debounce<T extends (...args: any[]) => void>(
         </button>
         <button 
           type="submit" 
+          className="chat-boot-send"
           disabled={isLoading || (!inputText.trim() && !attachment)}
           style={{
             padding: '0 20px',
