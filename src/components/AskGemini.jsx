@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, Sparkles, AlertCircle, Copy, Check, Trash2, ImagePlus, Mic, Square, X } from 'lucide-react';
 import { SYSTEM_PROMPT } from '../utils/aiEngine';
 
-const GEMINI_MODEL = 'gemini-3.7-flash';
+const GEMINI_MODEL = 'gemini-3.6-flash';
 const welcomeMessage = {
   sender: 'ai',
-  text: `Welcome to **Chat Boot**! I am your advanced AI assistant powered by Google Gemini 3.7 Flash. \n\nYou can ask questions, attach an image for analysis, or use the microphone to dictate a prompt.`
+  text: `Welcome to **Chat Boot**! I am your advanced AI assistant powered by Google Gemini 3.6 Flash. \n\nYou can ask questions, attach an image for analysis, or use the microphone to dictate a prompt.`
 };
 
 function loadChatHistory() {
