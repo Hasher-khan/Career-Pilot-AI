@@ -338,12 +338,12 @@ export default function AskGemini({ userData }) {
         role="status"
         aria-live="polite"
         style={{
-          minHeight: 'calc(100vh - 140px)',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1200,
           display: 'grid',
           placeItems: 'center',
-          padding: '24px',
-          borderRadius: '16px',
-          border: '1px solid var(--border-color)',
+          padding: '32px 24px',
           background: 'radial-gradient(circle at 50% 15%, rgba(99, 102, 241, 0.2), transparent 38%), var(--bg-main)',
           textAlign: 'center',
         }}
