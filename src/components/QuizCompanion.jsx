@@ -127,19 +127,7 @@ For True/False questions, use only A) True and B) False as options.
 ${content}`;
 }
 
-// ─── Demo fallback data ────────────────────────────────────────────────────────
-const DEMO_QUIZ = [
-  { q: 'What is the primary purpose of an algorithm in computer science?', opts: ['A) To store data efficiently', 'B) To provide a step-by-step procedure for solving a problem', 'C) To define the user interface', 'D) To manage memory allocation'], correct: 'B', explanation: 'An algorithm is a defined sequence of steps designed to solve a specific problem or accomplish a task, forming the foundation of all computational solutions.' },
-  { q: 'Which data structure provides O(1) average time complexity for lookup operations?', opts: ['A) Linked List', 'B) Binary Tree', 'C) Hash Table', 'D) Stack'], correct: 'C', explanation: 'Hash tables use a hashing function to map keys to indices, enabling constant-time average lookup regardless of dataset size.' },
-  { q: 'True or False: Recursion is a technique where a function calls itself to solve smaller instances of the same problem.', opts: ['A) True', 'B) False'], correct: 'A', explanation: 'Recursion involves a function calling itself with modified parameters until it reaches a base case, effectively solving complex problems by breaking them into simpler sub-problems.' },
-  { q: 'What does the "DRY" principle stand for in software development?', opts: ['A) Design Reliable Yields', 'B) Don\'t Repeat Yourself', 'C) Dynamic Runtime Yield', 'D) Declarative Runtime Yield'], correct: 'B', explanation: 'DRY (Don\'t Repeat Yourself) is a principle aimed at reducing code duplication by abstracting repeated logic into reusable functions or modules.' },
-  { q: 'Which of the following best describes "abstraction" in programming?', opts: ['A) Writing code in assembly language', 'B) Hiding complex details while exposing essential features', 'C) Optimizing memory usage', 'D) Connecting to external databases'], correct: 'B', explanation: 'Abstraction simplifies complex systems by hiding implementation details, allowing developers to work at higher levels of conceptual thinking.' },
-  { q: 'True or False: Arrays in most programming languages have dynamic size by default.', opts: ['A) True', 'B) False'], correct: 'B', explanation: 'Traditional arrays are fixed-size structures. Dynamic arrays or lists are separate data structures that grow/shrink as needed.' },
-  { q: 'What does "time complexity" measure in algorithm analysis?', opts: ['A) The actual execution time in seconds', 'B) How resource requirements grow as input size increases', 'C) The number of lines of code', 'D) Memory used during execution'], correct: 'B', explanation: 'Time complexity describes how the number of operations scales relative to input size, typically expressed using Big O notation.' },
-  { q: 'Which SOLID principle states that each class should have only one reason to change?', opts: ['A) Open/Closed Principle', 'B) Liskov Substitution', 'C) Single Responsibility Principle', 'D) Interface Segregation'], correct: 'C', explanation: 'The Single Responsibility Principle dictates that a class should encapsulate only one concern, making it easier to maintain and test.' },
-  { q: 'What is the key advantage of Linked Lists over Arrays?', opts: ['A) Faster random access', 'B) Less memory usage', 'C) Efficient insertion and deletion', 'D) Better cache performance'], correct: 'C', explanation: 'Linked lists allow O(1) insertion and deletion at known positions since only pointers need updating, unlike arrays which require shifting elements.' },
-  { q: 'True or False: The "Separation of Concerns" principle means each module should handle multiple responsibilities.', opts: ['A) True', 'B) False'], correct: 'B', explanation: 'Separation of Concerns means each module/component should handle exactly one concern or responsibility, improving modularity and maintainability.' },
-];
+// No demo data used anymore
 
 // ─── Parse AI response into quiz ─────────────────────────────────────────────
 function parseAIResponse(text) {
@@ -492,13 +480,15 @@ export default function QuizCompanion({ userData, setUserData }) {
       let parsed;
       if (response) {
         parsed = parseAIResponse(response);
-        setQuizList(parsed);
-      } else {
-        // Demo mode fallback
-        setQuizList(DEMO_QUIZ.slice(0, quizLength));
-        if (!hasApiKey) {
-          setError('demo');
+        if (parsed && parsed.length > 0) {
+          setQuizList(parsed);
+        } else {
+          setQuizList(null);
+          setError('Could not generate a quiz from this content. Please provide a valid text transcript or check the URL.');
         }
+      } else {
+        setQuizList(null);
+        setError('Failed to reach AI service or invalid API key.');
       }
 
       if (parsed && parsed.length > 0 && setUserData) {
