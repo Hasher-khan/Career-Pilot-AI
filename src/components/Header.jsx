@@ -19,7 +19,7 @@ export default function Header({ theme, toggleTheme, userData, activeTab, setAct
     'cover-letter':   'AI Cover Letter Generator',
     'email-generator':'AI Email Generator',
     'settings':       'Profile & Settings',
-    'study-companion':'Transcript Generator',
+
     'ai-quizzes':      'AI Practice Quizzes'
   };
 

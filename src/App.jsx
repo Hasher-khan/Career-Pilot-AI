@@ -11,7 +11,7 @@ import ProfileSettings from './components/ProfileSettings';
 import AiAssistantModal from './components/AiAssistantModal';
 import SignInModal from './components/SignInModal';
 import LandingPage from './components/LandingPage';
-import StudyCompanion from './components/StudyCompanion';
+
 import QuizCompanion from './components/QuizCompanion';
 
 import { useAuth } from './context/AuthContext';
@@ -312,9 +312,7 @@ export default function App() {
               <AdminPanel />
             )}
 
-            {activeTab === 'study-companion' && (
-              <StudyCompanion userData={userData} setUserData={handleSetUserData} />
-            )}
+
 
             {activeTab === 'ai-quizzes' && (
               <QuizCompanion userData={userData} setUserData={handleSetUserData} />
@@ -336,7 +334,7 @@ export default function App() {
           { id: 'dashboard',      label: 'Home',    icon: LayoutDashboard },
           { id: 'ask-gemini',      label: 'Chat Boot',  icon: Sparkles },
           { id: 'cover-letter',   label: 'Letter',  icon: Send },
-          { id: 'study-companion',label: 'Transcript',icon: AlignLeft },
+
           { id: 'ai-quizzes',     label: 'Quizzes', icon: Brain },
           { id: 'settings',       label: 'Profile', icon: Settings },
         ].map(item => {

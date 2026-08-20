@@ -26,7 +26,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
     { id: 'ask-gemini',        label: 'Chat Boot',             icon: Sparkles,    badge: 'AI' },
     { id: 'cover-letter',     label: 'Cover Letter',          icon: Send },
     { id: 'email-generator',  label: 'AI Email Generator',    icon: Mail,        badge: 'New' },
-    { id: 'study-companion',  label: 'Transcript Generator',  icon: AlignLeft,   badge: 'AI' },
+
     { id: 'ai-quizzes',       label: 'AI Quizzes',            icon: Brain,       badge: 'Quiz' },
     { id: 'settings',         label: 'Profile & Settings',    icon: Settings },
     { id: 'admin-panel',      label: 'Admin Panel',           icon: ShieldCheck, badge: 'Admin' },

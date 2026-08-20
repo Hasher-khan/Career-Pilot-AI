@@ -821,7 +821,7 @@ export default function DashboardOverview({ userData, setActiveTab, openAiChat }
             <RecommendationItem text="Ask Chat Boot to write, refactor, or explain complex code snippets." index={0} />
             <RecommendationItem text="Generate a custom, ATS-optimized Cover Letter for your target position." index={1} />
             <RecommendationItem text="Use AI Email Generator to compose networking and follow-up emails." index={2} />
-            <RecommendationItem text="Upload a video transcript into Transcript Generator to structure notes." index={3} />
+
           </div>
         </div>
 
