@@ -24,6 +24,7 @@ export default function Sidebar({ activeTab, setActiveTab, openAiChat, currentUs
   const navItems = [
     { id: 'dashboard',        label: 'Dashboard',             icon: LayoutDashboard },
     { id: 'ask-gemini',        label: 'Chat Boot',             icon: Sparkles,    badge: 'AI' },
+    { id: 'ai-cv-maker',      label: 'AI CV Maker',           icon: FileText,    badge: 'New' },
     { id: 'cover-letter',     label: 'Cover Letter',          icon: Send },
     { id: 'email-generator',  label: 'AI Email Generator',    icon: Mail,        badge: 'New' },
 

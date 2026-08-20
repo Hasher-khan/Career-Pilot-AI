@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardOverview from './components/DashboardOverview';
 import AskGemini from './components/AskGemini';
+import AICVMaker from './components/AICVMaker';
 import CoverLetterGenerator from './components/CoverLetterGenerator';
 import EmailGenerator from './components/EmailGenerator';
 import AdminPanel from './components/AdminPanel';
@@ -287,6 +288,10 @@ export default function App() {
               />
             )}
 
+            {activeTab === 'ai-cv-maker' && (
+              <AICVMaker userData={userData} />
+            )}
+
             {activeTab === 'cover-letter' && (
               <CoverLetterGenerator 
                 userData={userData}
@@ -333,6 +338,7 @@ export default function App() {
         {[
           { id: 'dashboard',      label: 'Home',    icon: LayoutDashboard },
           { id: 'ask-gemini',      label: 'Chat Boot',  icon: Sparkles },
+          { id: 'ai-cv-maker',    label: 'CV Maker',    icon: FileText },
           { id: 'cover-letter',   label: 'Letter',  icon: Send },
 
           { id: 'ai-quizzes',     label: 'Quizzes', icon: Brain },
