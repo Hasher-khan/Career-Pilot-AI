@@ -3,10 +3,10 @@ import { Send, Bot, Sparkles, AlertCircle, Copy, Check, Trash2, ImagePlus, Mic, 
 import { SYSTEM_PROMPT } from '../utils/aiEngine';
 import { GoogleGenAI } from '@google/genai';
 
-const GEMINI_MODEL = 'gemini-1.5-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 const welcomeMessage = {
   sender: 'ai',
-  text: `Welcome to **Chat Boot**! I am your advanced AI assistant powered by Google Gemini 3.6 Flash. \n\nYou can ask questions, attach an image for analysis, or use the microphone to dictate a prompt.`
+  text: `Welcome to **Chat Boot**! I am your advanced AI assistant powered by Google Gemini 2.5 Flash. \n\nYou can ask questions, attach an image for analysis, or use the microphone to dictate a prompt.`
 };
 
 function loadChatHistory() {
@@ -53,6 +53,7 @@ export default function AskGemini({ userData }) {
   const recognitionRef = useRef(null);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const hasValidApiKey = typeof apiKey === 'string' && apiKey.trim().startsWith('AIza');
 
   useEffect(() => {
     localStorage.setItem('ask_gemini_chat_history', JSON.stringify(messages));
@@ -139,21 +140,8 @@ export default function AskGemini({ userData }) {
   useEffect(() => () => recognitionRef.current?.stop(), []);
 
   const callGeminiAPI = async (userPrompt, chatHistory, imageAttachment) => {
-    if (!apiKey) {
-      // Simulation mode
-      await new Promise(r => setTimeout(r, 1200));
-      
-      const promptLower = userPrompt.toLowerCase();
-      if (/^(hello|hi|hey|assalamualaikum|salam)[!.\s]*$/i.test(userPrompt.trim())) {
-        return `Hello! I'm **Chat Boot**. I can help with career planning, coding, writing, interview preparation, and general questions. What would you like to work on?`;
-      }
-      if (promptLower.includes("debounce") || promptLower.includes("typescript")) {
-        return `Here is a clean, production-ready TypeScript debounce utility.`;
-      }
-      if (promptLower.includes("quantum")) {
-        return `Quantum computing uses qubits instead of bits to process complex data. These qubits can exist in multiple states simultaneously through superposition and entanglement. This allows quantum computers to solve specific mathematical problems exponentially faster than classical computers.`;
-      }
-      return `I can help you think through that. For the most detailed, up-to-date answer, Chat Boot needs its Gemini connection enabled. In the meantime, try asking a specific question with the context, goal, and format you want.`;
+    if (!hasValidApiKey) {
+      throw new Error('Chat Boot needs a valid Gemini API key. Add a Google AI Studio key (starting with "AIza") as VITE_GEMINI_API_KEY, then restart or redeploy the app.');
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -217,7 +205,7 @@ export default function AskGemini({ userData }) {
     } catch (err) {
       console.error(err);
       setErrorMsg(err.message || "Failed to reach Gemini API");
-      setMessages(prev => [...prev, { sender: 'ai', text: `❌ **Error**: ${err.message || 'Unable to connect to Gemini API. Please verify your internet connection and API key configuration.'}` }]);
+      setMessages(prev => [...prev, { sender: 'ai', text: `**Chat Boot error:** ${err.message || 'Unable to connect to Gemini. Please verify the API key and network connection.'}` }]);
     } finally {
       setIsLoading(false);
     }
@@ -375,13 +363,13 @@ export default function AskGemini({ userData }) {
           <div>
             <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Chat Boot</h4>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)' }}>
-              Gemini 3.7 Flash · Image + Voice ready
+              Gemini 2.5 Flash · Image + Voice ready
             </span>
           </div>
         </div>
 
         <div className="chat-boot-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {!apiKey && (
+          {!hasValidApiKey && (
             <div className="chat-boot-mode" style={{
               display: 'flex',
               alignItems: 'center',
@@ -395,7 +383,7 @@ export default function AskGemini({ userData }) {
               fontWeight: 500
             }}>
               <AlertCircle size={14} />
-              Simulation Mode
+              API Setup Required
             </div>
           )}
           <button 

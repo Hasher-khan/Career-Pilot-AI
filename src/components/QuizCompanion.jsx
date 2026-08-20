@@ -3,7 +3,7 @@ import {
   Sparkles, Link2, Zap, Award, Brain,
   CheckCircle, XCircle, RotateCcw, AlignLeft,
   AlertCircle, Loader, Globe, Hash, ChevronRight,
-  BarChart2
+  BarChart2, BellRing
 } from 'lucide-react';
 
 import { GoogleGenAI } from '@google/genai';
@@ -467,6 +467,38 @@ export default function QuizCompanion({ userData, setUserData }) {
   const [quizList, setQuizList]       = useState(null); // array of questions
 
   const hasApiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
+
+  return (
+    <section
+      aria-labelledby="quiz-coming-soon-title"
+      style={{
+        minHeight: 'calc(100vh - 140px)',
+        display: 'grid',
+        placeItems: 'center',
+        padding: '24px',
+        background: 'var(--bg-main)'
+      }}
+    >
+      <div style={{ maxWidth: '480px', width: '100%', textAlign: 'center' }}>
+        <div style={{
+          width: '58px', height: '58px', margin: '0 auto 18px', borderRadius: '8px',
+          display: 'grid', placeItems: 'center', color: '#ec4899',
+          background: 'rgba(236, 72, 153, 0.12)', border: '1px solid rgba(236, 72, 153, 0.28)'
+        }}>
+          <BellRing size={26} aria-hidden="true" />
+        </div>
+        <p style={{ margin: '0 0 8px', color: '#ec4899', fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          Feature update
+        </p>
+        <h1 id="quiz-coming-soon-title" style={{ margin: '0 0 10px', color: 'var(--text-main)', fontSize: '1.65rem', fontWeight: 800 }}>
+          AI Quizzes Coming Soon
+        </h1>
+        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.65 }}>
+          We are improving quiz generation and the practice experience. This page will be available again when the update is ready.
+        </p>
+      </div>
+    </section>
+  );
 
   const handleGenerate = async () => {
     const content = inputMode === 'transcript' ? transcript.trim() : urlInput.trim();
