@@ -327,6 +327,66 @@ export default function AskGemini({ userData }) {
     });
   };
 
+  // Chat Boot is temporarily unavailable while its AI service is being repaired.
+  // Keep the chat implementation below intact so it can be restored quickly.
+  const chatBootComingSoon = true;
+
+  if (chatBootComingSoon) {
+    return (
+      <section
+        className="glass-panel chat-boot-coming-soon"
+        role="status"
+        aria-live="polite"
+        style={{
+          minHeight: 'calc(100vh - 140px)',
+          display: 'grid',
+          placeItems: 'center',
+          padding: '24px',
+          borderRadius: '16px',
+          border: '1px solid var(--border-color)',
+          background: 'radial-gradient(circle at 50% 15%, rgba(99, 102, 241, 0.2), transparent 38%), var(--bg-main)',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ maxWidth: '480px' }}>
+          <div style={{
+            width: '76px',
+            height: '76px',
+            margin: '0 auto 22px',
+            display: 'grid',
+            placeItems: 'center',
+            borderRadius: '22px',
+            background: 'var(--chat-boot-gradient)',
+            boxShadow: '0 14px 32px rgba(99, 102, 241, 0.28)',
+          }}>
+            <Sparkles size={34} color="#fff" />
+          </div>
+          <span style={{
+            display: 'inline-block',
+            marginBottom: '12px',
+            padding: '6px 12px',
+            borderRadius: '999px',
+            background: 'rgba(99, 102, 241, 0.14)',
+            border: '1px solid rgba(129, 140, 248, 0.32)',
+            color: '#a5b4fc',
+            fontSize: '0.76rem',
+            fontWeight: 800,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}>
+            Coming Soon
+          </span>
+          <h2 style={{ margin: '0 0 12px', color: 'var(--text-main)', fontSize: 'clamp(1.7rem, 4vw, 2.35rem)', fontWeight: 850 }}>
+            Chat Boot is being upgraded
+          </h2>
+          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.7 }}>
+            We’re fixing the AI service and will bring Chat Boot back as soon as it’s ready. Please check back shortly.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <div style={{
       display: 'flex',
