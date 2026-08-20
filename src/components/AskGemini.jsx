@@ -189,14 +189,9 @@ export default function AskGemini({ userData }) {
       }
     });
 
-    const reply = response?.candidates?.[0]?.content?.parts
-      ?.map(part => part.text || '')
-      .join('')
-      .trim();
-
+    const reply = response.text?.trim();
     if (!reply) {
-      const reason = response?.candidates?.[0]?.finishReason;
-      throw new Error(reason ? `Gemini stopped before completing an answer (${reason}).` : 'No response returned from the Gemini service.');
+      throw new Error('No response returned from the Gemini service.');
     }
     return reply;
   };

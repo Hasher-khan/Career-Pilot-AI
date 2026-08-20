@@ -8,7 +8,7 @@ import {
 
 import { GoogleGenAI } from '@google/genai';
 
-// ─── Gemini API Call (text prompt) ───────────────────────────────────────────
+// ─── Gemini API Call ───────────────────────────────────────────
 async function callGeminiAI(prompt, youtubeUrl = null) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) return null;
@@ -19,32 +19,21 @@ async function callGeminiAI(prompt, youtubeUrl = null) {
 
     let contents;
     if (youtubeUrl) {
-      // Pass YouTube URL as video fileData so Gemini can watch the video
       contents = [
         {
           role: 'user',
           parts: [
-            {
-              fileData: {
-                mimeType: 'video/*',
-                fileUri: youtubeUrl
-              }
-            },
+            { fileData: { mimeType: 'video/*', fileUri: youtubeUrl } },
             { text: prompt }
           ]
         }
       ];
     } else {
-      contents = [{ role: 'user', parts: [{ text: prompt }] }];
+      contents = prompt; // plain string works fine for text-only prompts
     }
 
-    const response = await ai.models.generateContent({
-      model,
-      contents,
-      config: { temperature: 0.7, maxOutputTokens: 8192 }
-    });
-
-    return response?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    const response = await ai.models.generateContent({ model, contents });
+    return response.text || null;
   } catch (e) {
     console.error('Gemini API error:', e);
     return null;
