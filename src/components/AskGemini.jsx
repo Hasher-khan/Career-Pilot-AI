@@ -3,10 +3,10 @@ import { Send, Bot, Sparkles, AlertCircle, Copy, Check, Trash2, ImagePlus, Mic, 
 import { SYSTEM_PROMPT } from '../utils/aiEngine';
 import { GoogleGenAI } from '@google/genai';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.6-flash';
 const welcomeMessage = {
   sender: 'ai',
-  text: `Welcome to **Chat Boot**! I am your advanced AI assistant powered by Google Gemini 2.5 Flash. \n\nYou can ask questions, attach an image for analysis, or use the microphone to dictate a prompt.`
+  text: `Welcome to **Chat Boot**! I am your advanced AI assistant powered by Google Gemini 3.6 Flash. \n\nYou can ask questions, attach an image for analysis, or use the microphone to dictate a prompt.`
 };
 
 function loadChatHistory() {
@@ -53,7 +53,7 @@ export default function AskGemini({ userData }) {
   const recognitionRef = useRef(null);
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const hasValidApiKey = typeof apiKey === 'string' && apiKey.trim().startsWith('AIza');
+  const hasValidApiKey = typeof apiKey === 'string' && apiKey.trim().length > 0;
 
   useEffect(() => {
     localStorage.setItem('ask_gemini_chat_history', JSON.stringify(messages));
@@ -141,7 +141,7 @@ export default function AskGemini({ userData }) {
 
   const callGeminiAPI = async (userPrompt, chatHistory, imageAttachment) => {
     if (!hasValidApiKey) {
-      throw new Error('Chat Boot needs a valid Gemini API key. Add a Google AI Studio key (starting with "AIza") as VITE_GEMINI_API_KEY, then restart or redeploy the app.');
+      throw new Error('Chat Boot needs a Gemini API key. Add it as VITE_GEMINI_API_KEY, then restart or redeploy the app.');
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -363,7 +363,7 @@ export default function AskGemini({ userData }) {
           <div>
             <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Chat Boot</h4>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-subtle)' }}>
-              Gemini 2.5 Flash · Image + Voice ready
+              Gemini 3.6 Flash · Image + Voice ready
             </span>
           </div>
         </div>
