@@ -6,28 +6,45 @@ import {
   BarChart2
 } from 'lucide-react';
 
-// ─── Gemini API Call ─────────────────────────────────────────────────────────
-async function callGeminiAI(prompt) {
+import { GoogleGenAI } from '@google/genai';
+
+// ─── Gemini API Call (text prompt) ───────────────────────────────────────────
+async function callGeminiAI(prompt, youtubeUrl = null) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    // Simulate a delay for demo mode
-    await new Promise(r => setTimeout(r, 2000));
-    return null;
-  }
+  if (!apiKey) return null;
+
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
-        })
-      }
-    );
-    const json = await res.json();
-    return json?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    const ai = new GoogleGenAI({ apiKey });
+    const model = 'gemini-1.5-pro';
+
+    let contents;
+    if (youtubeUrl) {
+      // Pass YouTube URL as video fileData so Gemini can watch the video
+      contents = [
+        {
+          role: 'user',
+          parts: [
+            {
+              fileData: {
+                mimeType: 'video/*',
+                fileUri: youtubeUrl
+              }
+            },
+            { text: prompt }
+          ]
+        }
+      ];
+    } else {
+      contents = [{ role: 'user', parts: [{ text: prompt }] }];
+    }
+
+    const response = await ai.models.generateContent({
+      model,
+      contents,
+      config: { temperature: 0.7, maxOutputTokens: 8192 }
+    });
+
+    return response?.candidates?.[0]?.content?.parts?.[0]?.text || null;
   } catch (e) {
     console.error('Gemini API error:', e);
     return null;
@@ -474,8 +491,10 @@ export default function QuizCompanion({ userData, setUserData }) {
 
     setActiveDifficulty(difficulty);
     try {
-      const prompt = buildQuizPrompt(content, topic, quizLength, difficulty);
-      const response = await callGeminiAI(prompt);
+      const youtubeUrl = inputMode === 'url' ? content : null;
+      const textContent = inputMode === 'url' ? `Generate ${quizLength} quiz questions about the video.` : content;
+      const prompt = buildQuizPrompt(textContent, topic, quizLength, difficulty);
+      const response = await callGeminiAI(prompt, youtubeUrl);
 
       let parsed;
       if (response) {

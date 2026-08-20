@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, Sparkles, AlertCircle, Copy, Check, Trash2, ImagePlus, Mic, Square, X } from 'lucide-react';
 import { SYSTEM_PROMPT } from '../utils/aiEngine';
+import { GoogleGenAI } from '@google/genai';
 
 const GEMINI_MODEL = 'gemini-1.5-flash';
 const welcomeMessage = {
@@ -144,46 +145,19 @@ export default function AskGemini({ userData }) {
       
       const promptLower = userPrompt.toLowerCase();
       if (/^(hello|hi|hey|assalamualaikum|salam)[!.\s]*$/i.test(userPrompt.trim())) {
-        return `Hello! I’m **Chat Boot**. I can help with career planning, coding, writing, interview preparation, and general questions. What would you like to work on?`;
+        return `Hello! I'm **Chat Boot**. I can help with career planning, coding, writing, interview preparation, and general questions. What would you like to work on?`;
       }
       if (promptLower.includes("debounce") || promptLower.includes("typescript")) {
-        return `Here is a clean, production-ready TypeScript debounce utility.
-
-**TypeScript Debounce Function**
-\`\`\`typescript
-export function debounce<T extends (...args: any[]) => void>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  return (...args: Parameters<T>): void => {
-    if (timeout !== null) {
-      clearTimeout(timeout);
-    }
-    timeout = setTimeout(() => {
-      func(...args);
-    }, wait);
-  };
-}
-\`\`\`
-
-**Core Features:**
-- **Zero Dependencies**: Pure TypeScript implementation.
-- **Type-Safe**: Correctly infers and preserves parameters of the debounced function.
-- **Memory Efficient**: Properly clears active timeouts.`;
+        return `Here is a clean, production-ready TypeScript debounce utility.`;
       }
-      
       if (promptLower.includes("quantum")) {
         return `Quantum computing uses qubits instead of bits to process complex data. These qubits can exist in multiple states simultaneously through superposition and entanglement. This allows quantum computers to solve specific mathematical problems exponentially faster than classical computers.`;
       }
-
       return `I can help you think through that. For the most detailed, up-to-date answer, Chat Boot needs its Gemini connection enabled. In the meantime, try asking a specific question with the context, goal, and format you want.`;
     }
 
-    // The Gemini API requires a conversation to begin with a user turn. The
-    // local welcome message is UI-only, so exclude it and retain complete
-    // user/model exchanges from the saved conversation.
+    const ai = new GoogleGenAI({ apiKey });
+
     const history = chatHistory
       .filter(msg => msg?.sender === 'user' || msg?.sender === 'ai')
       .map(msg => ({
@@ -206,34 +180,22 @@ export function debounce<T extends (...args: any[]) => void>(
 
     const contents = [...history, { role: 'user', parts: userParts }];
 
-    const body = {
-      systemInstruction: {
-        parts: [{ text: buildAssistantInstructions(userData) }]
-      },
+    const response = await ai.models.generateContent({
+      model: GEMINI_MODEL,
       contents,
-      generationConfig: { maxOutputTokens: 4096 }
-    };
-
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+      config: {
+        systemInstruction: buildAssistantInstructions(userData),
+        maxOutputTokens: 4096
       }
-    );
+    });
 
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(json?.error?.message || `API error (${res.status}).`);
-    }
-
-    const reply = json?.candidates?.[0]?.content?.parts
+    const reply = response?.candidates?.[0]?.content?.parts
       ?.map(part => part.text || '')
       .join('')
       .trim();
+
     if (!reply) {
-      const reason = json?.candidates?.[0]?.finishReason;
+      const reason = response?.candidates?.[0]?.finishReason;
       throw new Error(reason ? `Gemini stopped before completing an answer (${reason}).` : 'No response returned from the Gemini service.');
     }
     return reply;
